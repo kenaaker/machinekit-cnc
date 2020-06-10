@@ -1,0 +1,14 @@
+src/emc/kinematics
+src/emc/kinematics/userpci
+src/emc/motion
+src/emc/nml_intf
+src/emc/rs274ngc
+src/emc/tp
+src/emc/usr_intf
+src/emc/usr_intf/axis/extensions
+src/emc/usr_intf/emcweb
+src/libnml/buffer
+src/libnml/os_intf
+src/libnml/posemath
+src/libnml/rcs
+src/workaround/hardy-amd64/asm
