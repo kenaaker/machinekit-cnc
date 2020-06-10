@@ -1220,6 +1220,7 @@ src/emc/motion/stashf_wrap.h
 src/emc/motion/state_tag.h
 src/emc/motion/usrmotintf.cc
 src/emc/motion/usrmotintf.h
+src/emc/nml_intf/Submakefile
 src/emc/nml_intf/canon.hh
 src/emc/nml_intf/canon_position.cc
 src/emc/nml_intf/canon_position.hh
@@ -1329,6 +1330,7 @@ src/emc/tp/tp_private.h
 src/emc/tp/tp_shared.h
 src/emc/tp/tp_types.h
 src/emc/tp/tpmain.c
+src/emc/usr_intf/Submakefile
 src/emc/usr_intf/axis/extensions/_toglmodule.c
 src/emc/usr_intf/axis/extensions/emcmodule.cc
 src/emc/usr_intf/axis/extensions/minigl.c

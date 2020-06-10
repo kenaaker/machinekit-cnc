@@ -1,3 +1,4 @@
+src
 src/emc/kinematics
 src/emc/kinematics/userpci
 src/emc/motion
@@ -7,8 +8,15 @@ src/emc/tp
 src/emc/usr_intf
 src/emc/usr_intf/axis/extensions
 src/emc/usr_intf/emcweb
+src/emc/pythonplugin
 src/libnml/buffer
 src/libnml/os_intf
 src/libnml/posemath
 src/libnml/rcs
 src/workaround/hardy-amd64/asm
+src/libnml/cms
+src/libnml/linklist
+/home/kdaaker/nfs_mounts/beaglebone-cnc/usr/include
+/home/kdaaker/nfs_mounts/beaglebone-cnc/usr/include/c++/6
+/home/kdaaker/nfs_mounts/beaglebone-cnc/usr/include/linuxcnc
+/home/kdaaker/nfs_mounts/beaglebone-cnc/usr/include/arm-linux-gnueabihf
