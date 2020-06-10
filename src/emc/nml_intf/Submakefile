@@ -21,14 +21,14 @@ $(call TOOBJSDEPS, $(LIBEMCSRCS)) : EXTRAFLAGS=-fPIC
 TARGETS += ../lib/liblinuxcnc.a
 
 ../lib/liblinuxcnc.a: $(call TOOBJS,$(LIBEMCSRCS))
-	$(ECHO) Linking $(notdir $@)
-	@mkdir -p ../lib
-	@rm -f $@
-	@$(AR) $(ARFLAGS) $@ $^
+        $(ECHO) Creating object Archive $(notdir $@)
+        @mkdir -p ../lib
+        @rm -f $@
+        @$(AR) $(ARFLAGS) $@ $^
 
 ../include/%.h: ./emc/nml_intf/%.h
-	$(ECHO) Copying header file $@
-	$(Q)cp $^ $@
+        $(ECHO) Copying header file $@
+        $(Q)cp $^ $@
 ../include/%.hh: ./emc/nml_intf/%.hh
-	$(ECHO) Copying header file $@
-	$(Q)cp $^ $@
+        $(ECHO) Copying header file $@
+        $(Q)cp $^ $@

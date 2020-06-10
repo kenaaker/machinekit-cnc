@@ -856,7 +856,7 @@ int main(int argc, char *argv[])
 
     if (0 != loadToolTable(tool_table_file, emcioStatus.tool.toolTable,
 		fms, ttcomments, random_toolchanger)) {
-	rcs_print_error("can't load tool table.\n");
+	rcs_print_error("can't load tool table named %s.\n", tool_table_file);
     }
 
     done = 0;
