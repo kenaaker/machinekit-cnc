@@ -1,3 +1,6 @@
 .
 axis/extensions
 emcweb
+/home/kdaaker/nfs_mounts/beaglebone-cnc/usr/include
+/home/kdaaker/nfs_mounts/beaglebone-cnc/usr/include/linuxcnc
+/home/kdaaker/nfs_mounts/beaglebone-cnc/usr/include/python2.7
