@@ -16,6 +16,7 @@ src/libnml/rcs
 src/workaround/hardy-amd64/asm
 src/libnml/cms
 src/libnml/linklist
+../../machinekit-hal/include
 /home/kdaaker/nfs_mounts/beaglebone-cnc/usr/include
 /home/kdaaker/nfs_mounts/beaglebone-cnc/usr/include/c++/6
 /home/kdaaker/nfs_mounts/beaglebone-cnc/usr/include/linuxcnc
