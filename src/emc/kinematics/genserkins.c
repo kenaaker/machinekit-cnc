@@ -680,6 +680,8 @@ static double timestamp()
     return ((double) tp.tv_sec) + ((double) tp.tv_usec) / 1000000.0;
 }
 
+#define BUFFERLEN (4095)
+
 int main(int argc, char *argv[])
 {
     char buffer[BUFFERLEN];

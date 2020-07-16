@@ -5,6 +5,10 @@ ifeq ("$(origin VV)", "command line")
     OLD_SHELL := $(SHELL)
     SHELL = $(warning Building $@$(if $<, (from $<))$(if $?, ($? newer)))$(OLD_SHELL)
 endif
+
+#CROSS_COMPILE=arm-linux-gnueabihf-
+#CROSS_COMPILE_FLAGS=--sysroot=/home/kdaaker/nfs_mounts/beaglebone-cnc
+
 # Delete the default suffix rules
 .SUFFIXES:
 .PHONY: default userspace modules clean modclean depclean docclean install python pythonclean cscope cscopeclean
@@ -37,10 +41,10 @@ EDIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
 # Beautify output
 # ---------------------------------------------------------------------------
 #
-# A simple variant is to prefix commands with $(Q) - that's useful
+# A simple variant is to prefix commands with  - that's useful
 # for commands that shall be hidden in non-verbose mode.
 #
-#	$(Q)ln $@ :<
+#	ln $@ :<
 #
 # If BUILD_VERBOSE equals 0 then the above command will be hidden.
 # If BUILD_VERBOSE equals 1 then the above command is displayed.
@@ -68,6 +72,8 @@ endif
 
 BUILD_KBUILD = no
 
+LDFLAGS += $(CROSS_COMPILE_FLAGS)
+
 # extract the version from the kernel source version.h
 ifneq ($(KERNELDIR),)
 KERNEL_VERS = $(shell $(BASEPWD)/../scripts/kernel-vers.sh $(KERNELDIR))
@@ -92,9 +98,8 @@ default:
 
 #############################################################################################
 
-OBJDIR := objects/modules
-DEPDIR := depends/modules
-RTLIBDIR := ../rtlib/modules
+OBJDIR := objects
+RTLIBDIR := ../rtlib
 
 DEP = $(1) $(CPPFLAGS) -MM -MG -MT "$(2)" $(4) -o $(3).tmp && \
 	mv -f "$(3)".tmp "$(3)"
@@ -126,7 +131,7 @@ INSTALL_DIRS :=
 
 # Submakefiles from each of these directories will be included if they exist
 SUBDIRS := \
-	\
+	libnml \
 	libnml/linklist \
 	libnml/cms \
 	libnml/rcs \
@@ -134,8 +139,6 @@ SUBDIRS := \
 	libnml/nml \
 	libnml/buffer \
 	libnml/posemath \
-	libnml \
-	\
 	emc/usr_intf/axis \
 	emc/usr_intf/touchy \
 	emc/usr_intf/stepconf \
@@ -149,16 +152,109 @@ SUBDIRS := \
 	emc/iotask \
 	emc/kinematics \
 	emc/canterp \
-	emc/motion \
-	emc/tp \
 	emc/ini \
 	emc/rs274ngc \
 	emc/sai \
 	emc \
 	emc/pythonplugin \
-	\
-	po \
+	po
 
+OBJ_DIRS := $(patsubst %,objects/%,$(SUBDIRS))
+OBJ_DIRS += objects/emc/motion
+OBJ_DIRS += objects/emc/usr_intf/axis/extensions
+	
+$(OBJDIR):
+	mkdir $@
+
+objects/libnml: | objects
+	mkdir $@
+
+objects/libnml/linklist: | objects/libnml
+	mkdir $@
+
+objects/libnml/cms: | objects/libnml
+	mkdir $@
+
+objects/libnml/rcs: | objects/libnml
+	mkdir $@
+
+objects/libnml/os_intf: | objects/libnml
+	mkdir $@
+
+objects/libnml/nml: | objects/libnml
+	mkdir $@
+
+objects/libnml/buffer: | objects/libnml
+	mkdir $@
+
+objects/libnml/posemath: | objects/libnml
+	mkdir $@
+
+objects/emc/usr_intf/axis: | objects/emc/usr_intf
+	mkdir $@
+
+objects/emc/usr_intf/touchy: | objects/emc/usr_intf
+	mkdir $@
+
+objects/emc/usr_intf/stepconf: | objects/emc/usr_intf
+	mkdir $@
+
+objects/emc/usr_intf/pncconf: | objects/emc/usr_intf
+	mkdir $@
+
+objects/emc/usr_intf/gremlin: | objects/emc/usr_intf
+	mkdir $@
+
+objects/emc/usr_intf/gscreen: | objects/emc/usr_intf
+	mkdir $@
+
+objects/emc/usr_intf/gmoccapy: | objects/emc/usr_intf
+	mkdir $@
+
+objects/emc/usr_intf/axis: | objects/emc/usr_intf
+	mkdir $@
+
+objects/emc/usr_intf/axis/extensions: | objects/emc/usr_intf/axis
+	mkdir $@
+
+objects/emc/usr_intf: | objects/emc
+	mkdir $@
+
+objects/emc/nml_intf: | objects/emc
+	mkdir $@
+
+objects/emc/task: | objects/emc
+	mkdir $@
+
+objects/emc/iotask: | objects/emc
+	mkdir $@
+
+objects/emc/kinematics: | objects/emc
+	mkdir $@
+
+objects/emc/canterp: | objects/emc
+	mkdir $@\
+
+objects/emc/ini: | objects/emc
+	mkdir $@
+	
+objects/emc/rs274ngc: | objects/emc
+	mkdir $@
+
+objects/emc/sai: | objects/emc
+	mkdir $@
+
+objects/emc/motion: | objects/emc
+	mkdir $@
+	
+objects/emc: | objects
+	mkdir $@
+
+objects/emc/pythonplugin: | objects/emc
+	mkdir $@
+
+objects/po: | objects
+	mkdir $@
 
 # moved to src/rtapi/Submakefile
 # ULAPISRCS := rtapi/$(RTPREFIX)_ulapi.c
@@ -166,10 +262,15 @@ SUBDIRS := \
 # Each item in INCLUDES is transformed into a -I directive later on
 # The top directory is always included
 INCLUDES := .
+INCLUDES += ../include
+INCLUDES += ../../machinekit-hal/include
 
 USERSRCS :=
 RTSRCS :=
 PROGRAMS :=
+
+HAL_LIB := -L../../machinekit-hal/lib
+
 
 # When used like $(call TOxxx, ...) these turn a list of source files
 # into the corresponding list of object files, dependency files,
@@ -179,7 +280,7 @@ PROGRAMS :=
 # preprocessed source when src.c needs a customized compile flag.
 # See Submakefile.skel for an example.
 TOOBJS = $(patsubst %.cc,objects/%$(2).o,$(patsubst %.c,objects/%$(2).o,$(1)))
-TODEPS = $(patsubst %.cc,depends/%$(2).d,$(patsubst %.c,depends/%$(2).d,$(1)))
+TODEPS = $(patsubst %.cc,objects/%$(2).d,$(patsubst %.c,objects/%$(2).d,$(1)))
 #-not sure, something fishy here -mah
 #TODEPS = $(patsubst %.cc,objects/%.d,$(patsubst %.c,objects/%.d,$(1)))
 
@@ -197,9 +298,9 @@ TORTOBJS = $(patsubst %.cc,$(OBJDIR)/%$(2).o,$(patsubst %.c,$(OBJDIR)/%$(2).o,$(
 #     hal/components/encoder.o hal/components/othersrc.o
 define c_comp_build_rules
 obj-m += $$(patsubst $$(dir $(1))%.o,%.o,$(1))
-$$(patsubst $$(dir $(1))%.o,%-objs,$(1)) += $(1) $(2)
-$$(patsubst $$(dir $(1))%.o,$(RTLIBDIR)/%.so,$(1)): \
-    $$(addprefix $(OBJDIR)/,$(1) $(2))
+$$(patsubst $$(dir $(1))%.o,%-objs,$(1)) += $$(addprefix $(OBJDIR)/,$(1) $(2))
+$$(patsubst $$(dir $(1))%.c,$(OBJDIR)/%.o,$$(addprefix $(OBJDIR)/,$(1) $(2))): 
+$$(patsubst $$(dir $(1))%.o,$(RTLIBDIR)/%.so,$(1)): $$(addprefix $(OBJDIR)/,$(1) $(2))
 
 endef
 # Debugging
@@ -221,9 +322,8 @@ endef
 #		objects/dir/ulapi_srcs.o \
 #		$(OBJDIR)/dir/rtapi_srcs.o $(OBJDIR)/dir/test_src.o \
 #		../lib/lib.so
-#	@mkdir -p objects/dir
 #	@echo Linking test objects/dir/test_src_RTAPI
-#	$(Q)gcc -o objects/dir/test_src_RTAPI -g -DRTAPI \
+#	gcc -o objects/dir/test_src_RTAPI -g -DRTAPI \
 #		$(OBJDIR)/dir/test_src.o \
 #		objects/dir/ulapi_srcs.o $(OBJDIR)/dir/rtapi_srcs.o \
 #		../lib/lib.so -lfoo -Wl,--wrap=wrap_funct
@@ -237,9 +337,7 @@ $$(if $$(filter RTAPI,$(2)),RTSRCS,USERSRCS) += $(1).c
 objects/$(1)_$(strip $(2)): \
 		$$(call $$(if $$(filter RTAPI,$(2)),TORTOBJS,TOOBJS), $(1).c) \
 		$$(call TOOBJS, $(3)) $$(call TORTOBJS, $(4)) $(5)
-	@mkdir -p objects/$$(dir $(1))
-	@echo Linking test objects/$(1)_$(strip $(2))
-	$(Q)gcc -o $$@ -g $$^ -lcmocka $(6) $$(addprefix $$(WL_WRAP),$(7))
+	$(CROSS_COMPILE)gcc $(CROSS_COMPILE_FLAGS) -o $$@ -g $$^ -lcmocka $(6) $$(addprefix $$(WL_WRAP),$(7))
 CMOCKA_TESTS += $(1)_$(strip $(2))
 
 endef
@@ -287,12 +385,6 @@ READ_DEPS = $(wildcard $(DEPS))
 $(shell echo 1>&2 Reading $(words $(READ_DEPS))/$(words $(DEPS)) dependency files)
 -include $(READ_DEPS)
 UNREAD_DEPS = $(filter-out $(READ_DEPS), $(DEPS))
-LEGACY_DEPS = $(patsubst objects/%, depends/%, $(UNREAD_DEPS))
-READ_LEGACY_DEPS = $(wildcard $(LEGACY_DEPS))
-ifneq ($(READ_LEGACY_DEPS),)
-$(shell echo 1>&2 Reading $(words $(READ_LEGACY_DEPS)) old-style dependency files)
--include $(READ_LEGACY_DEPS)
-endif
 $(shell echo 1>&2 Done reading dependencies)
 endif
 
@@ -305,16 +397,6 @@ endif
 # trap build errors by making it possible to compare configure SHA vs build SHA
 # see configure.ac GIT_CONFIG_SHA for the configure-time string
 GIT_BUILD_SHA := $(shell ../scripts/get-git-sha)
-
-# complain if SHA's dont match
-$(info $(shell  ../scripts/check-build-vs-configure-sha))
-
-# allow RIP build of machinekit-cnc by copying req libs and headers from existing machinekit-hal build
-#
-ifeq ($(USE_MKHAL),yes)
-$(info $(shell  ../.jenkins/copy_libs	$(EMC2_HOME) $(MKHAL)))
-$(info $(shell  ../.jenkins/copy_includes	$(EMC2_HOME) $(MKHAL)))
-endif
 
 # Compilation options.	Perhaps some of these should come from Makefile.inc? (CXXFLAGS now does)
 INTEGER_OVERFLOW_FLAGS := $(call cc-option,-fwrapv) $(call cc-option, -fno-strict-overflow)
@@ -329,6 +411,8 @@ CFLAGS := $(INCLUDE) -I$(EMC2_HOME)/include $(OPT) $(DEBUG) $(DPKG_CFLAGS) $(PRO
 # enable runtime comparison of GIT_CONFIG_SHA (config.h) and GIT_BUILD_SHA
 CFLAGS += -DGIT_BUILD_SHA=\"'$(GIT_BUILD_SHA)'\"
 
+CFLAGS += $(CROSS_COMPILE_FLAGS)
+
 # make ck_pr.h happy:
 CFLAGS += $(CK_CFLAGS)
 
@@ -337,7 +421,9 @@ ifeq ($(ARCH_CFLAGS),@ARCH_CFLAGS@)
 ARCH_CFLAGS := -Wunused
 endif
 
-BASE_CXXFLAGS:= $(INCLUDE) $(CXXFLAGS) \
+BASE_CXXFLAGS:= $(INCLUDE) \
+		$(CROSS_COMPILE_FLAGS) \
+		$(CXXFLAGS) \
 		$(CK_CFLAGS) \
 		$(DEBUG) $(DPKG_CFLAGS) $(OPT) \
 		$(PROFILE_CFLAGS) \
@@ -347,38 +433,25 @@ BASE_CXXFLAGS:= $(INCLUDE) $(CXXFLAGS) \
 CXXFLAGS :=   $(BASE_CXXFLAGS) -DULAPI
 RT_CXXFLAGS :=   $(BASE_CXXFLAGS)
 
+CXX := $(CROSS_COMPILE)g++
+
 ifeq ($(RUN_IN_PLACE),yes)
-LDFLAGS += -L$(LIB_DIR) -Wl,-rpath,$(LIB_DIR)
+LDFLAGS += -L$(LIB_DIR) -Wl,-rpath,../lib:../../machinekit-hal/lib
 else
 LDFLAGS += -Wl,-rpath-link,../lib
 endif
 LDFLAGS += -Wl,--no-as-needed
 
 # Rules to make .o (object) files
-$(sort $(CUSEROBJS)) : objects/%.o: %.c
-	$(ECHO) Compiling $<
-	@mkdir -p $(dir $@)
-	@rm -f $@
-	$(Q)$(CC) -c $(CPPFLAGS) $(CFLAGS) $(EXTRAFLAGS) \
-		-MP -MD -MF "${@:.o=.d}" -MT "$@" \
-		$< -o $@
+$(CUSEROBJS) : objects/%.o: %.c | $(OBJ_DIRS)
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(EXTRAFLAGS) -MMD -MF "${@:.o=.d}" -MT "$@" $< -o $@
 
 # Rules to make .o (object) files, build arch
-$(sort $(CUSEROBJS_BUILD)) : objects/%_build.o: %.c
-	$(ECHO) Compiling $<
-	@mkdir -p $(dir $@)
-	@rm -f $@
-	$(Q)$(CC_FOR_BUILD) -c $(CFLAGS) $(EXTRAFLAGS) \
-		-MP -MD -MF "${@:.o=.d}" -MT "$@" \
-		$< -o $@
+$(CUSEROBJS_BUILD) : objects/%_build.o: %.c | $(OBJ_DIRS)
+	$(CC_FOR_BUILD) -c $(CFLAGS) $(EXTRAFLAGS) -MMD -MF "${@:.o=.d}" -MT "$@" $< -o $@
 
-$(sort $(CXXUSEROBJS)) : objects/%.o: %.cc
-	$(ECHO) Compiling ++ $<
-	@mkdir -p $(dir $@)
-	@rm -f $@
-	$(Q)$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) \
-		-MP -MD -MF "${@:.o=.d}" -MT "$@" \
-		$< -o $@
+$(CXXUSEROBJS) : objects/%.o: %.cc | $(OBJ_DIRS)
+	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -MMD -MF "${@:.o=.d}" -MT "$@" $< -o $@
 
 ifeq ($(TRIVIAL_BUILD),no)
 configure config.h.in: configure.ac
@@ -502,8 +575,8 @@ HEADERS := \
     libnml/os_intf/timer.hh \
     libnml/rcs/rcs.hh \
     libnml/rcs/rcs_exit.hh \
-    libnml/rcs/rcs_print.hh \
     libnml/rcs/rcsversion.h \
+    libnml/rcs/rcs_print.hh
 
 ## the "headers" target installs all the header files in ../include
 .PHONY: headers
@@ -526,38 +599,38 @@ TARGETS += $(patsubst po/%.po, objects/%.msg, $(wildcard po/*.po))
 # tooledit as standalone app:
 TARGETS += ../bin/tooledit
 ../bin/tooledit: Makefile
-	$(Q)rm -f $@
-	$(Q)(echo "#!$(TCLSH)")>|$@
-	$(Q)(echo "source $(EMC2_TCL_LIB_DIR)/tooledit.tcl")>>$@
-	$(Q)(echo "standalone_tooledit")>>$@
-	$(Q)chmod +x $@
+	rm -f $@
+	(echo "#!$(TCLSH)")>|$@
+	(echo "source $(EMC2_TCL_LIB_DIR)/tooledit.tcl")>>$@
+	(echo "standalone_tooledit")>>$@
+	chmod +x $@
 
 # ngcgui as standalone app:
 TARGETS += ../bin/ngcgui
 ../bin/ngcgui: Makefile
-	$(Q)rm -f $@
-	$(Q)(echo "#!$(TCLSH)")>|$@
-	$(Q)(echo "source $(EMC2_TCL_LIB_DIR)/ngcgui.tcl")>>$@
-	$(Q)(echo "::ngcgui::standalone_ngcgui")>>$@
-	$(Q)chmod +x $@
+	rm -f $@
+	(echo "#!$(TCLSH)")>|$@
+	(echo "source $(EMC2_TCL_LIB_DIR)/ngcgui.tcl")>>$@
+	(echo "::ngcgui::standalone_ngcgui")>>$@
+	chmod +x $@
 
 # pyngcgui as standalone app:
 TARGETS += ../bin/pyngcgui
 ../bin/pyngcgui: Makefile
-	$(Q)rm -f $@
-	$(Q)(echo "#!$(PYTHON)")>|$@
-	$(Q)(echo "import pyngcgui")>>$@
-	$(Q)(echo "pyngcgui.standalone_pyngcgui()")>>$@
-	$(Q)chmod +x $@
+	rm -f $@
+	(echo "#!$(PYTHON)")>|$@
+	(echo "import pyngcgui")>>$@
+	(echo "pyngcgui.standalone_pyngcgui()")>>$@
+	chmod +x $@
 
 # gremlin_view as standalone app:
 TARGETS += ../bin/gremlin_view
 ../bin/gremlin_view: Makefile
-	$(Q)rm -f $@
-	$(Q)(echo "#!$(PYTHON)")>|$@
-	$(Q)(echo "import gremlin_view")>>$@
-	$(Q)(echo "gremlin_view.standalone_gremlin_view()")>>$@
-	$(Q)chmod +x $@
+	rm -f $@
+	(echo "#!$(PYTHON)")>|$@
+	(echo "import gremlin_view")>>$@
+	(echo "gremlin_view.standalone_gremlin_view()")>>$@
+	chmod +x $@
 
 
 # And make userspace depend on $(TARGETS)
@@ -580,7 +653,7 @@ modclean:
 	-rm -f $(RTLIBDIR)/*.so
 
 depclean:
-	-rm -rf depends
+	-rm -rf objects/*.d
 
 docclean:
 #	-rm -f ../man/man9/*.9icomp
@@ -598,8 +671,7 @@ clean: depclean modclean docclean
 	-rm -rf ../libexec
 
 # So that nothing is built as root, this rule does not depend on the touched
-# files (Note that files in depends/ might be rebuilt, and there's little that
-# can be done about it)
+# files 
 #fix_perms = test -f $(1) && chown root $(1) && chmod 4750 $(1) || true
 #
 #ifeq ($(BUILD_DRIVERS),yes)
@@ -626,12 +698,10 @@ setuid:
 # of each file that contains headers.
 ../include/%.h: %.h
 	$(ECHO) Copying header file $@
-	@mkdir -p $(dir $@)
-	$(Q)-cp $^ $@
+	-cp $^ $@
 ../include/%.hh: %.hh
 	$(ECHO) Copying header file $@
-	@mkdir -p $(dir $@)
-	$(Q)-cp $^ $@
+	-cp $^ $@
 
 
 DIR=install -d -m 0755 -o root
@@ -656,7 +726,6 @@ MENUS = ../share/menus/CNC.menu \
     ../share/applications/linuxcnc.desktop \
 
 install-menus install-menu: $(MENUS)
-	mkdir -p $(HOME)/.config/menus/applications-merged
 	cp $< $(HOME)/.config/menus/applications-merged
 else
 
@@ -865,15 +934,15 @@ show_configs_copy_stuff:
 configs: $(COPY_CONFIGS)
 
 $(call CONFILES,axis_manualtoolchange.hal): %/axis_manualtoolchange.hal: ../configs/common/axis_manualtoolchange.hal
-	$(Q)-cp $< $@
+	-cp $< $@
 $(call CONFILES,core_stepper.hal): %/core_stepper.hal: ../configs/common/core_stepper.hal
-	$(Q)-cp $< $@
+	-cp $< $@
 $(call CONFILES,core_servo.hal): %/core_servo.hal: ../configs/common/core_servo.hal
-	$(Q)-cp $< $@
+	-cp $< $@
 $(call CONFILES,core_sim.hal): %/core_sim.hal: ../configs/common/core_sim.hal
-	$(Q)-cp $< $@
+	-cp $< $@
 $(call CONFILES,core_sim9.hal): %/core_sim9.hal: ../configs/common/core_sim9.hal
-	$(Q)-cp $< $@
+	-cp $< $@
 
 #################################################################################################################
 
@@ -909,9 +978,9 @@ EXTRA_CFLAGS += -fPIC
 # Non-module RT objects
 RTOBJS = $(call TORTOBJS,$(RTSRCS))
 # Module RT objects
-RTOBJS += $(sort $(foreach mod,$(obj-m),$(call TOCOMPRTOBJS,$(mod))))
+RTOBJS += $(foreach mod,$(obj-m),$(call TOCOMPRTOBJS,$(mod)))
 
-RTDEPS := $(sort $(patsubst $(OBJDIR)/%.o,$(DEPDIR)/%.d, $(RTOBJS)))
+RTDEPS := $(patsubst $(OBJDIR)/%.o,$(OBJDIR)/%.d, $(RTOBJS))
 
 # this arcane step warrants some explanation.
 
@@ -987,37 +1056,28 @@ RTDEPS := $(sort $(patsubst $(OBJDIR)/%.o,$(DEPDIR)/%.d, $(RTOBJS)))
 modules: $(patsubst %.o,$(RTLIBDIR)/%.so,$(obj-m))
 $(RTLIBDIR)/%.so:
 	$(ECHO) Linking realtime $(notdir $@)
-	@mkdir -p $(dir $@)
-	@# link all objects files into a single .so
-	$(Q)$(LD) -d -r -o $(OBJDIR)/$*.tmp $^
+	$(LD) -d -r -o $(OBJDIR)/$*.tmp $^
 	@# use the .rtapi_export string table to generate a ld version script
 	@# explicitly defining the EXPORT_SYMBOL syms as global, and everything else as local:
-	$(Q)$(OBJCOPY) -j .rtapi_export -O binary $(OBJDIR)/$*.tmp $(OBJDIR)/$*.exported
-	$(Q)(echo '{ global : ';  tr -s '\0' <$(OBJDIR)/$*.exported | xargs -r0 printf '%s;\n' | grep .; echo 'local : * ; };') > $(OBJDIR)/$*.ver
+	$(OBJCOPY) -j .rtapi_export -O binary $(OBJDIR)/$*.tmp $(OBJDIR)/$*.exported
+	(echo '{ global : ';  tr -s '\0' <$(OBJDIR)/$*.exported | xargs -r0 printf '%s;\n' | grep .; echo 'local : * ; };') > $(OBJDIR)/$*.ver
 	@# link the final object using this version script:
-	$(Q)$(CC) -shared -Bsymbolic $(LDFLAGS) -Wl,--version-script,$(OBJDIR)/$*.ver -o $@ $^ $(EXTRA_LDFLAGS)
+	$(CC) -shared -Bsymbolic $(LDFLAGS) -Wl,--version-script,$(OBJDIR)/$*.ver -o $@ $^ $(EXTRA_LDFLAGS)
 
-$(sort $(RTDEPS)): $(DEPDIR)/%.d: %.c
-	@mkdir -p $(dir $@)
-	$(ECHO) Depending realtime $<
-	$(Q)$(call DEP,$(CC),$@ \
-		$(patsubst depends/%.d,objects/%.o,$@),$@,$(OPT) \
-		$(DEBUG) $(CPPFLAGS) $(EXTRA_CFLAGS) $<)
+#$(sort $(RTDEPS)): $(OBJDIR)/%.d: %.c
+#	$(ECHO) Depending realtime $<
+#	$(call DEP,$(CC),$@ \
+#		$(patsubst objects/%.d,objects/%.o,$@),$@,$(OPT) \
+#		$(DEBUG) $(CPPFLAGS) $(EXTRA_CFLAGS) $<)
 
 # Rules to make .o (object) files
-$(sort $(RTOBJS)) : $(OBJDIR)/%.o : %.c $(DEPDIR)/%.d
-	$(ECHO) Compiling realtime $<
-	@rm -f $@
-	@mkdir -p $(dir $@)
-	$(Q)$(CC) -c $(OPT) $(DPKG_CFLAGS) $(DEBUG) $(CPPFLAGS) \
+$(sort $(RTOBJS)) : $(OBJDIR)/%.o : %.c $(OBJDIR)/%.d
+	$(CC) -c $(OPT) $(DPKG_CFLAGS) $(DEBUG) $(CPPFLAGS) \
 	    $(EXTRA_CFLAGS) $< -o $@
 
 # Rules to make .o (object) files from .cc
-$(sort $(CXXRTOBJS)) : $(OBJDIR)/%.o : %.cc $(DEPDIR)/%.d
-	$(ECHO) Compiling realtime++ $<
-	@rm -f $@
-	@mkdir -p $(dir $@)
-	$(Q)$(CXX) -c $(OPT) $(DEBUG) $(RT_CXXFLAGS) $(CPPFLAGS) \
+$(sort $(CXXRTOBJS)) : $(OBJDIR)/%.o : %.cc $(OBJDIR)/%.d
+	$(CXX) -c $(OPT) $(DEBUG) $(RT_CXXFLAGS) $(CPPFLAGS) \
 	    $(EXTRA_CFLAGS) $< -o $@
 
 ###############################################################################################
@@ -1029,7 +1089,6 @@ $(sort $(CXXRTOBJS)) : $(OBJDIR)/%.o : %.cc $(DEPDIR)/%.d
 
 # dont create tags from these directories
 NOTAGSIN := \
-	depends \
 	objects
 
 CTAGOPTS := $(addprefix --exclude=,$(NOTAGSIN))
@@ -1085,14 +1144,13 @@ swish:
 # variable ZZZ, which is assumed to depend on a Makefile, a Submakefile, or
 # Makefile.inc
 objects/var-%: Makefile $(wildcard $(SUBMAKEFILES)) Makefile.inc
-	@mkdir -p $(dir $@)
-	@echo $($*) > $@.tmp
-	@sh move-if-change $@.tmp $@
+	echo $($*) > $@.tmp
+	sh move-if-change $@.tmp $@
 
 # Link shared libs
 ../lib/%.so: ../lib/%.so.0
 	$(ECHO) Symlinking $(notdir $<) to $(notdir $@)
-	$(Q)ln -sf $(notdir $<) $@
+	ln -sf $(notdir $<) $@
 # - Be sure the setuid message comes last
 ALL_SHLIBS=$(filter ../%.so.0,$(TARGETS)) $(filter ../%.so,$(TARGETS))
 modules: $(ALL_SHLIBS)

@@ -52,7 +52,7 @@
 #include "canon.hh"		// CANON_UNITS, CANON_UNITS_INCHES,MM,CM
 #include "emcglb.h"		// EMC_NMLFILE, TRAJ_MAX_VELOCITY, etc.
 #include "emccfg.h"		// DEFAULT_TRAJ_MAX_VELOCITY
-#include "inifile.hh"		// INIFILE
+#include "mk-inifile.hh"	// INIFILE
 #include "config.h"		// Standard path definitions
 #include "rcs_print.hh"
 #include "sockets.h"		// TCP/IP common socket functions

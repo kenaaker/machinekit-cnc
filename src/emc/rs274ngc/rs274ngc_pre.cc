@@ -80,7 +80,7 @@ include an option for suppressing superfluous commands.
 #include <unistd.h>
 #include <libintl.h>
 
-#include "inifile.hh"		// INIFILE
+#include "mk-inifile.hh"	// INIFILE
 #include "rs274ngc.hh"
 #include "rs274ngc_return.hh"
 #include "interp_internal.hh"	// interpreter private definitions

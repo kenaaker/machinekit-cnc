@@ -4,7 +4,7 @@
 #include "emc.hh"
 #include "initool.hh"
 #include "tool_parse.h"
-#include "inifile.hh"
+#include "mk-inifile.hh"
 
 class Task {
 public:

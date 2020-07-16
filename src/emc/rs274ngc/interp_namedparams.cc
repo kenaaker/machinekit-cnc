@@ -33,7 +33,7 @@ namespace bp = boost::python;
 #include "rs274ngc_return.hh"
 #include "interp_internal.hh"
 #include "rs274ngc_interp.hh"
-#include "inifile.hh"
+#include "mk-inifile.hh"
 
 // for HAL pin variables
 #include "hal.h"

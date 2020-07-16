@@ -26,7 +26,7 @@
 #include "emc_nml.hh"
 #include "kinematics.h"
 #include "config.h"
-#include "inifile.hh"
+#include "mk-inifile.hh"
 #include "timer.hh"
 #include "nml_oi.hh"
 #include "rcs_print.hh"

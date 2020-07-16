@@ -1,16 +1,17 @@
+INCLUDES += emc/motion
 
 EMCSVRSRCS := \
 	emc/task/emcsvr.cc
 USERSRCS += $(EMCSVRSRCS)
 
-../bin/linuxcncsvr: $(call TOOBJS, $(EMCSVRSRCS)) \
-	../lib/liblinuxcnc.a \
+../bin/machinekitsvr: $(call TOOBJS, $(EMCSVRSRCS)) \
+	../lib/libmachinekit.a \
 	../lib/libnml.so.0 \
-	../lib/liblinuxcncini.so.0 \
-	../lib/librtapi_math.so.0
+	../../machinekit-hal/lib/libmkini.so.0 \
+	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	@$(CXX) $(LDFLAGS) -o $@ $^ 
-TARGETS += ../bin/linuxcncsvr
+	$(CXX) $(LDFLAGS) -o $@ $^ 
+TARGETS += ../bin/machinekitsvr
 
 # disabled:	emc/task/iotaskintf.cc
 MILLTASKSRCS := \
@@ -23,7 +24,6 @@ MILLTASKSRCS := \
 	emc/task/taskintf.cc \
 	emc/motion/dbuf.c \
 	emc/motion/stashf.c \
-	emc/rs274ngc/tool_parse.cc \
 	emc/task/taskmodule.cc \
 	emc/task/taskclass.cc \
 	emc/task/backtrace.cc \
@@ -34,14 +34,15 @@ USERSRCS += $(MILLTASKSRCS)
 
 ../bin/milltask: $(call TOOBJS, $(MILLTASKSRCS)) \
 	../lib/librs274.so.0 \
-	../lib/liblinuxcnc.a \
+	../lib/libmachinekit.a \
 	../lib/libnml.so.0 \
-	../lib/liblinuxcncini.so.0 \
-	../lib/libposemath.so.0 \
-	../lib/liblinuxcnchal.so.0 \
-	../lib/liblinuxcnculapi.so.0 \
+	../../machinekit-hal/lib/librtapi_math.so.0 \
+	../../machinekit-hal/lib/libmkini.so.0 \
+	../../machinekit-hal/lib/libhal.so.0 \
+	../../machinekit-hal/lib/libhalulapi.so.0 \
 	../lib/libpyplugin.so.0 \
-	../lib/librtapi_math.so.0
+	../lib/libposemath.so.0 \
+	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(Q)$(CXX) -o $@ $^ $(LDFLAGS) -l$(BOOST_PYTHON_LIB) $(PYTHON_LIBS)
+	$(CXX) -o $@ $^ $(LDFLAGS) -l$(BOOST_PYTHON_LIB) $(PYTHON_LIBS)
 TARGETS += ../bin/milltask

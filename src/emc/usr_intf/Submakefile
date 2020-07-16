@@ -1,21 +1,21 @@
-EMCSHSRCS := emc/usr_intf/emcsh.cc \
-             emc/usr_intf/shcom.cc
+EMCSHSRCS := emc/usr_intf/emcsh.cc
+
 EMCRSHSRCS := emc/usr_intf/emcrsh.cc \
-              emc/usr_intf/shcom.cc
+	      emc/usr_intf/shcom.cc
+
 EMCSCHEDSRCS := emc/usr_intf/schedrmt.cc \
-              emc/usr_intf/emcsched.cc \
-              emc/usr_intf/shcom.cc
+		emc/usr_intf/emcsched.cc
+
 EMCLCDSRCS := emc/usr_intf/emclcd.cc \
-              emc/usr_intf/shcom.cc \
               emc/usr_intf/sockets.c
 
-
-EMCWEBSRCS := emc/usr_intf/shcom.cc \
-		emc/usr_intf/emccontroller.cc \
-		emc/usr_intf/emcweb.cc \
-		emc/usr_intf/emcweb/mongoose.c \
-		emc/usr_intf/emcweb/mongoose_wrapper.cc
+EMCWEBSRCS := emc/usr_intf/emccontroller.cc \
+	      emc/usr_intf/emcweb.cc \
+	      emc/usr_intf/emcweb/mongoose.c \
+	      emc/usr_intf/emcweb/mongoose_wrapper.cc
+	      
 HALUISRCS := emc/usr_intf/halui.cc
+
 ifeq "$(HAVE_NCURSES)" "yes"
 KEYSTICKSRCS := emc/usr_intf/keystick.cc
 endif
@@ -24,7 +24,7 @@ XEMCSRCS := emc/usr_intf/xemc.cc
 endif
 
 TCLSRCS := emc/usr_intf/emcsh.cc emc/usr_intf/iosh.cc
-USERSRCS += $(EMCSHSRCS) $(EMCRSHSRCS) $(EMCSCHEDSRCS) $(EMCLCDSRCS) $(HALUISRCS) $(KEYSTICKSRCS)
+USERSRCS += $(EMCSHSRCS) $(EMCRSHSRCS) $(EMCSCHEDSRCS) $(EMCLCDSRCS) $(HALUISRCS)
 
 ifeq "$(HAVE_NCURSES)" "yes"
 USERSRCS += $(KEYSTICKSRCS)
@@ -43,87 +43,86 @@ $(call TOOBJSDEPS, $(EMCSHSRCS)) : EXTRAFLAGS = $(ULFLAGS) $(TCL_CFLAGS) -fPIC
 ifeq "$(RUN_IN_PLACE)" "yes"
 $(call TOOBJSDEPS, $(EMCWEBSRCS)) : EXTRAFLAGS = -D__DIR__=\"$(EMC2_HOME)\"  -fPIC
 else
-$(call TOOBJSDEPS, $(EMCWEBSRCS)) : EXTRAFLAGS = -D__DIR__=\"/var/cache/linuxcnc\"  -fPIC
+$(call TOOBJSDEPS, $(EMCWEBSRCS)) : EXTRAFLAGS = -D__DIR__=\"/var/cache/machinekit\"  -fPIC
 endif
 
-../tcl/linuxcnc.so: $(call TOOBJS, $(EMCSHSRCS)) \
-	../lib/liblinuxcnc.a \
-	../lib/liblinuxcncini.so.0 \
+../tcl/machinekit.so: $(call TOOBJS, $(EMCSHSRCS)) $(OBJDIR)/emc/rs274ngc/modal_state.o \
+	../lib/libmachinekit.a \
+	../../machinekit-hal/lib/libmkini.so.0 \
 	../lib/libnml.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(Q)$(CXX) -shared $(LDFLAGS) -o $@ $(TCL_CFLAGS) $^ $(TCL_LIBS) -lXinerama
-TARGETS += ../tcl/linuxcnc.so
+	$(CXX) -shared $(LDFLAGS) -o $@ $(TCL_CFLAGS) $^ $(TCL_LIBS) -lXinerama
+TARGETS += ../tcl/machinekit.so
 
-../bin/linuxcncrsh: $(call TOOBJS, $(EMCRSHSRCS)) \
-	../lib/liblinuxcnc.a \
+../bin/machinekitrsh: $(call TOOBJS, $(EMCRSHSRCS)) $(OBJDIR)/emc/rs274ngc/modal_state.o \
+	../lib/libmachinekit.a \
 	../lib/libnml.so.0 \
-	../lib/liblinuxcncini.so.0 \
-	../lib/librtapi_math.so.0
+	../../machinekit-hal/lib/libmkini.so.0 \
+	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(Q)$(CXX) $(LDFLAGS) -o $@ $^ -lpthread
-TARGETS += ../bin/linuxcncrsh
+	$(CXX) $(LDFLAGS) -o $@ $^ -lpthread
+TARGETS += ../bin/machinekitrsh
 
-../bin/schedrmt: $(call TOOBJS, $(EMCSCHEDSRCS)) \
-	../lib/liblinuxcnc.a \
+../bin/schedrmt: $(call TOOBJS, $(EMCSCHEDSRCS)) $(OBJDIR)/emc/usr_intf/shcom.o $(OBJDIR)/emc/rs274ngc/modal_state.o \
+	../lib/libmachinekit.a \
 	../lib/libnml.so.0 \
-	../lib/liblinuxcncini.so.0 \
-	../lib/librtapi_math.so.0
+	../../machinekit-hal/lib/libmkini.so.0 \
+	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(Q)$(CXX) $(LDFLAGS) -o $@ $^ -lpthread
+	$(CXX) $(LDFLAGS) -o $@ $^ -lpthread
 TARGETS += ../bin/schedrmt
 
-../bin/linuxcnclcd: $(call TOOBJS, $(EMCLCDSRCS)) \
-	../lib/liblinuxcnc.a \
+../bin/machinekitlcd: $(call TOOBJS, $(EMCLCDSRCS)) $(OBJDIR)/emc/usr_intf/shcom.o $(OBJDIR)/emc/rs274ngc/modal_state.o \
+	../lib/libmachinekit.a \
 	../lib/libnml.so.0 \
-	../lib/liblinuxcncini.so.0 \
-	../lib/librtapi_math.so.0
+	../../machinekit-hal/lib/libmkini.so.0 \
+	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(Q)$(CXX) $(LDFLAGS) -o $@ $^
-TARGETS += ../bin/linuxcnclcd
+	$(CXX) $(LDFLAGS) -o $@ $^
+TARGETS += ../bin/machinekitlcd
 
-
-../bin/halui: $(call TOOBJS, $(HALUISRCS)) \
-	../lib/liblinuxcnc.a \
-	../lib/liblinuxcncini.so.0 \
+../bin/halui: $(call TOOBJS, $(HALUISRCS)) $(OBJDIR)/emc/rs274ngc/modal_state.o \
+	../lib/libmachinekit.a \
+	../../machinekit-hal/lib/libmkini.so.0 \
 	../lib/libnml.so.0 \
-	../lib/liblinuxcnchal.so.0 \
-	../lib/liblinuxcnculapi.so.0 \
-	../lib/librtapi_math.so.0
+	../../machinekit-hal/lib/libhal.so.0 \
+	../../machinekit-hal/lib/libhalulapi.so.0 \
+	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(Q)$(CXX) $(LDFLAGS) -o $@ $^ 
+	$(CXX) $(LDFLAGS) -o $@ $^ 
 TARGETS += ../bin/halui
 
 ifeq "$(HAVE_NCURSES)" "yes"
-../bin/keystick: $(call TOOBJS, $(KEYSTICKSRCS)) \
-	../lib/liblinuxcnc.a \
+../bin/keystick: $(call TOOBJS, $(KEYSTICKSRCS)) $(OBJDIR)/emc/rs274ngc/modal_state.o \
+	../lib/libmachinekit.a \
 	../lib/libnml.so.0 \
-	../lib/liblinuxcncini.so.0 \
-	../lib/librtapi_math.so.0
+	../../machinekit-hal/lib/libmkini.so.0 \
+	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(Q)$(CXX) $(LDFLAGS) -o $@ $^ $(KEYSTICKLIBS)
+	$(CXX) $(LDFLAGS) -o $@ $^ $(KEYSTICKLIBS)
 TARGETS += ../bin/keystick
 endif
 
 ifeq "$(HAVE_XAW)" "yes"
 $(call TOOBJSDEPS,$(XEMCSRCS)): EXTRAFLAGS = $(CFLAGS_X)
-../bin/xlinuxcnc: $(call TOOBJS, $(XEMCSRCS)) \
-	../lib/liblinuxcnc.a \
+../bin/xmachinekit: $(call TOOBJS, $(XEMCSRCS)) $(OBJDIR)/emc/rs274ngc/modal_state.o \
+	../lib/libmachinekit.a \
 	../lib/libnml.so.0 \
-	../lib/liblinuxcncini.so.0 \
-	../lib/librtapi_math.so.0
+	../../machinekit-hal/lib/libmkini.so.0 \
+	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(Q)$(CXX) $(LDFLAGS) -o $@ $^ $(XLIBS)
-TARGETS += ../bin/xlinuxcnc
+	$(CXX) $(LDFLAGS) -o $@ $^ $(XLIBS)
+TARGETS += ../bin/xmachinekit
 endif
 
 ifeq "$(BUILD_EMCWEB)" "yes"
 ../bin/emcweb: $(call TOOBJS, $(EMCWEBSRCS)) \
-	../lib/liblinuxcnc.a \
+	../lib/libmachinekit.a \
 	../lib/libnml.so.0 \
-	../lib/liblinuxcncini.so.0 \
-	../lib/librtapi_math.so.0
+	../../machinekit-hal/lib/libmkini.so.0 \
+	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(Q)$(CXX) $(LDFLAGS) $(BOOST_LDFLAGS) -o $@ $(ULFLAGS) $^ \
+	$(CXX) $(LDFLAGS) $(BOOST_LDFLAGS) -o $@ $(ULFLAGS) $^ \
 	    $(BOOST_THREAD_LIB) $(BOOST_SYSTEM_LIB) \
 	    -lpthread -ldl	
 TARGETS += ../bin/emcweb

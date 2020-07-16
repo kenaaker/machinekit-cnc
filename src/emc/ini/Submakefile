@@ -2,7 +2,7 @@ INCLUDES += emc/ini
 
 ../include/%.h: ./emc/ini/%.h
 	$(ECHO) Copying header file $@
-	$(Q)cp $^ $@
+	cp $^ $@
 ../include/%.hh: ./emc/ini/%.hh
 	$(ECHO) Copying header file $@
-	$(Q)cp $^ $@
+	cp $^ $@

@@ -3,16 +3,13 @@ INCLUDES += libnml/posemath
 POSEMATHSRCS := $(addprefix libnml/posemath/, _posemath.c posemath.cc gomath.c sincos.c)
 $(call TOOBJSDEPS, $(POSEMATHSRCS)) : EXTRAFLAGS=-fPIC
 USERSRCS += $(POSEMATHSRCS) 
-#TARGETS += libposemath.so libposemath.so.0
+TARGETS += ../lib/libposemath.so ../lib/libposemath.so.0 ../include/posemath.h ../include/posemath.hh
 
-#../lib/libposemath.so.0: $(call TOOBJS,$(POSEMATHSRCS)) ../lib/librtapi_math.so.0
-#	$(ECHO) Creating shared library $(notdir $@)
-#	@mkdir -p ../lib
-#	@rm -f $@
-#	@$(CXX) $(LDFLAGS) -Wl,-soname,$(notdir $@) -shared -o $@ $^
+../lib/libposemath.so.0: $(call TOOBJS,$(POSEMATHSRCS)) ../../machinekit-hal/lib/librtapi_math.so.0
+	$(ECHO) Creating shared library $(notdir $@)
+	$(CXX) $(LDFLAGS) -Wl,-soname,$(notdir $@) -shared -o $@ $^
 
-# don't want these headers - already in machinekit-hal
-#../include/%.h: ./libnml/posemath/%.h
-#	cp $^ $@
-#../include/%.hh: ./libnml/posemath/%.hh
-#	cp $^ $@
+../include/%.h: ./libnml/posemath/%.h
+	cp $^ $@
+../include/%.hh: ./libnml/posemath/%.h
+	cp $^ $@

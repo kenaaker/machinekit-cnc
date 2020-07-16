@@ -1,5 +1,5 @@
 #include "python_plugin.hh"
-#include "inifile.hh"
+#include "mk-inifile.hh"
 
 #include <stdio.h>
 #include <stdlib.h>

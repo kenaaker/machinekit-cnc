@@ -1,8 +1,8 @@
 INCLUDES += emc/nml_intf
+INCLUDES += emc/tp
 
 LIBEMCSRCS := \
     emc/nml_intf/emcglb.c \
-    emc/rs274ngc/modal_state.cc \
     emc/nml_intf/emc.cc \
     emc/nml_intf/emcpose.c \
     emc/nml_intf/emcargs.cc \
@@ -18,17 +18,13 @@ USERSRCS += $(LIBEMCSRCS)
 
 $(call TOOBJSDEPS, $(LIBEMCSRCS)) : EXTRAFLAGS=-fPIC
 
-TARGETS += ../lib/liblinuxcnc.a
+TARGETS += ../lib/libmachinekit.a
 
-../lib/liblinuxcnc.a: $(call TOOBJS,$(LIBEMCSRCS))
-        $(ECHO) Creating object Archive $(notdir $@)
-        @mkdir -p ../lib
-        @rm -f $@
-        @$(AR) $(ARFLAGS) $@ $^
+../lib/libmachinekit.a: $(call TOOBJS,$(LIBEMCSRCS))
+	$(ECHO) Creating object Archive $(notdir $@)
+	$(AR) $(ARFLAGS) $@ $^
 
 ../include/%.h: ./emc/nml_intf/%.h
-        $(ECHO) Copying header file $@
-        $(Q)cp $^ $@
+	cp $^ $@
 ../include/%.hh: ./emc/nml_intf/%.hh
-        $(ECHO) Copying header file $@
-        $(Q)cp $^ $@
+	cp $^ $@

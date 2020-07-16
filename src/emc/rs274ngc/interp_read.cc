@@ -28,7 +28,7 @@
 #include "rs274ngc_return.hh"
 #include "interp_internal.hh"
 #include "rs274ngc_interp.hh"
-#include "inifile.hh"		// strstore()
+#include "mk-inifile.hh"	// strstore()
 
 /****************************************************************************/
 

@@ -33,7 +33,7 @@
 #define _EMCINIFILE_HH_
  
 #include "emc.hh"
-#include "inifile.hh"
+#include "mk-inifile.hh"
 
 
 class EmcIniFile : public IniFile {

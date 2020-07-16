@@ -24,7 +24,7 @@
 #include "emc.hh"		// EMC NML
 #include "emc_nml.hh"		// EMC NML
 #include "emcglb.h"		// emcGetArgs(), EMC_NMLFILE
-#include "inifile.hh"
+#include "mk-inifile.hh"
 #include "rcs_print.hh"
 #include "nml_oi.hh"
 #include "timer.hh"

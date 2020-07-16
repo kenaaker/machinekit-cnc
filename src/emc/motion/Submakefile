@@ -15,7 +15,4 @@ $(eval $(call c_comp_build_rules,emc/motion/motmod.o, \
 	emc/motion/emcmotglb.o \
 	emc/motion/emcmotutil.o \
 	emc/motion/stashf.o \
-	emc/motion/dbuf.o \
-	libnml/posemath/_posemath.o \
-	libnml/posemath/sincos.o \
-))
+	emc/motion/dbuf.o))

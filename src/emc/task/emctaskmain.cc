@@ -70,7 +70,7 @@ fpu_control_t __fpu_control = _FPU_IEEE & ~(_FPU_MASK_IM | _FPU_MASK_ZM | _FPU_M
 #include "emc.hh"		// EMC NML
 #include "emc_nml.hh"
 #include "canon.hh"		// CANON_TOOL_TABLE stuff
-#include "inifile.hh"		// INIFILE
+#include "mk-inifile.hh"	// INIFILE
 #include "interpl.hh"		// NML_INTERP_LIST, interp_list
 #include "emcglb.h"		// EMC_INIFILE,NMLFILE, EMC_TASK_CYCLE_TIME
 #include "interp_return.hh"	// public interpreter return values

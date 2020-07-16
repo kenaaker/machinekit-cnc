@@ -39,10 +39,10 @@ $(call TOOBJSDEPS, $(LIBRS274SRCS)) : EXTRAFLAGS=-fPIC  $(BOOST_DEBUG_FLAGS)
 TARGETS += ../lib/librs274.so ../lib/librs274.so.0
 
 ../lib/librs274.so.0: $(patsubst %.cc,objects/%.o,$(LIBRS274SRCS)) \
-	../lib/liblinuxcncini.so \
+	../../machinekit-hal/lib/libmkini.so \
 	../lib/libpyplugin.so \
-	../lib/liblinuxcnchal.so.0 \
-	../lib/librtapi_math.so.0
+	../../machinekit-hal/lib/libhal.so.0 \
+	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
 	@mkdir -p ../lib
 	@rm -f $@
@@ -67,20 +67,20 @@ $(GCODEMODULE): $(call TOOBJS, $(GCODEMODULESRCS)) ../lib/librs274.so.0
 
 PYTARGETS += $(GCODEMODULE)
 
-PREVIEWMODULESRCS := \
-	emc/rs274ngc/previewmodule.cc
+PREVIEWMODULESRCS := emc/rs274ngc/previewmodule.cc
+
 PYSRCS += $(PREVIEWMODULESRCS)
 
 $(call TOOBJSDEPS, $(PREVIEWMODULESRCS)) : Makefile.inc
 $(call TOOBJSDEPS, $(PREVIEWMODULESRCS)) : EXTRAFLAGS += -Ihal/haltalk $(CZMQ_CFLAGS) $(PROTOBUF_CFLAGS)
 
 PREVIEWMODULE := ../lib/python/preview.so
+
 $(PREVIEWMODULE): $(call TOOBJS, $(PREVIEWMODULESRCS)) \
 	../lib/librs274.so.0 \
-	../lib/libmachinetalk-pb2++.so.0 \
-	../lib/libmtalk.so
+	../../machinekit-hal/lib/libmachinetalk-pb2++.so.0
 	$(ECHO) Linking python module $(notdir $@)
-	$(Q)$(CXX) $(LDFLAGS) -shared -o $@ $^ -lstdc++  $(CZMQ_LIBS) \
+	$(CXX) $(LDFLAGS) -shared -o $@ $^ -lstdc++  $(CZMQ_LIBS) \
 	    $(PROTOBUF_LIBS)
 
 

@@ -26,7 +26,7 @@
 #include "emc_nml.hh"
 #include "rcs_print.hh"
 #include "timer.hh"
-#include "inifile.hh"
+#include "mk-inifile.hh"
 #include "iniaxis.hh"
 #include "initraj.hh"
 #include "inihal.hh"

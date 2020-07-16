@@ -1,26 +1,31 @@
 IOSRCS := emc/iotask/ioControl.cc emc/rs274ngc/tool_parse.cc
-IOV2SRCS := emc/iotask/ioControl_v2.cc emc/rs274ngc/tool_parse.cc
+IOV2SRCS := emc/iotask/ioControl_v2.cc
 USERSRCS += $(IOSRCS) $(IOV2SRCS)
 
 ../bin/io: \
 		$(call TOOBJS, $(IOSRCS)) \
-		../lib/liblinuxcnc.a \
+		objects/emc/rs274ngc/modal_state.o \
+		../lib/libmachinekit.a \
 		../lib/libnml.so.0 \
-		../lib/liblinuxcnchal.so.0 \
-		../lib/liblinuxcnculapi.so.0 \
-		../lib/liblinuxcncini.so.0
+		../../machinekit-hal/lib/libhal.so.0 \
+		../../machinekit-hal/lib/librtapi_math.so.0 \
+		../../machinekit-hal/lib/libhalulapi.so.0 \
+		../../machinekit-hal/lib/libmkini.so.0
 	$(ECHO) Linking $(notdir $@)
-	@$(CXX) $(LDFLAGS) -o $@ $^ 
+	$(CXX) $(LDFLAGS) -o $@ $^ 
 
 ../bin/iov2: \
 		$(call TOOBJS, $(IOV2SRCS)) \
-		../lib/liblinuxcnc.a \
+		objects/emc/rs274ngc/modal_state.o \
+		objects/emc/rs274ngc/tool_parse.o \
+		../lib/libmachinekit.a \
 		../lib/libnml.so.0 \
-		../lib/liblinuxcnchal.so.0 \
-		../lib/liblinuxcnculapi.so.0 \
-		../lib/liblinuxcncini.so.0
+		../../machinekit-hal/lib/libhal.so.0 \
+		../../machinekit-hal/lib/librtapi_math.so.0 \
+		../../machinekit-hal/lib/libhalulapi.so.0 \
+		../../machinekit-hal/lib/libmkini.so.0
 	$(ECHO) Linking $(notdir $@)
-	@$(CXX) $(LDFLAGS) -o $@ $^
+	$(CXX) $(LDFLAGS) -o $@ $^
 
 TARGETS += ../bin/io ../bin/iov2
 

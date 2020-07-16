@@ -64,7 +64,7 @@
 #include "emc.hh"		/* EMC NML */
 #include "emc_nml.hh"
 #include "emcglb.h"		/* EMC_NMLFILE, EMC_INIFILE, TOOL_TABLE_FILE */
-#include "inifile.hh"		/* INIFILE */
+#include "mk-inifile.hh"	/* INIFILE */
 #include "initool.hh"		/* iniTool() */
 #include "nml_oi.hh"
 #include "timer.hh"

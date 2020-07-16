@@ -4,7 +4,7 @@ MINIGLMODULESRCS := emc/usr_intf/axis/extensions/minigl.c
 TOGLMODULESRCS := emc/usr_intf/axis/extensions/_toglmodule.c
 PYSRCS += $(EMCMODULESRCS) $(MINIGLMODULESRCS) $(TOGLMODULESRCS)
 
-EMCMODULE := ../lib/python/linuxcnc.so
+EMCMODULE := ../lib/python/machinekit.so
 MINIGLMODULE := ../lib/python/minigl.so
 TOGLMODULE := ../lib/python/_togl.so
 
@@ -14,10 +14,10 @@ $(call TOOBJSDEPS, $(TOGLMODULESRCS))  : \
 $(call TOOBJSDEPS, $(EMCMODULESRCS)) : Makefile.inc
 
 $(EMCMODULE): $(call TOOBJS, $(EMCMODULESRCS)) \
-	../lib/liblinuxcnc.a \
+	../lib/libmachinekit.a \
 	../lib/libnml.so.0 \
-	../lib/liblinuxcncini.so \
-	../lib/librtapi_math.so.0
+	../../machinekit-hal/lib/libmkini.so \
+	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking python module $(notdir $@)
 	$(Q)$(CXX) $(LDFLAGS) -shared -o $@ $^ -L/usr/X11R6/lib -lGL
 
@@ -33,7 +33,7 @@ $(TOGLMODULE): $(call TOOBJS, $(TOGLMODULESRCS))
 
 PYTARGETS += $(EMCMODULE) $(MINIGLMODULE) $(TOGLMODULE)
 
-PYSCRIPTS := axis.py axis-remote.py linuxcnctop.py hal_manualtoolchange.py \
+PYSCRIPTS := axis.py axis-remote.py machinekittop.py hal_manualtoolchange.py \
 	mdi.py image-to-gcode.py lintini.py debuglevel.py teach-in.py tracking-test.py
 PYBIN := $(patsubst %.py,../bin/%,$(PYSCRIPTS))
 PYTARGETS += $(PYBIN)

@@ -20,7 +20,7 @@
 #include "emc.hh"
 #include "emcpos.h"             // EmcPose
 #include "rcs_print.hh"
-#include "inifile.hh"
+#include "mk-inifile.hh"
 #include "initool.hh"		// these decls
 #include "emcglb.h"		// TOOL_TABLE_FILE
 
