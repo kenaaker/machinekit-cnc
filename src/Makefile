@@ -450,41 +450,7 @@ $(CUSEROBJS_BUILD) : objects/%_build.o: %.c | $(OBJ_DIRS)
 $(CXXUSEROBJS) : objects/%.o: %.cc | $(OBJ_DIRS)
 	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -MMD -MF "${@:.o=.d}" -MT "$@" $< -o $@
 
-ifeq ($(TRIVIAL_BUILD),no)
-configure config.h.in: configure.ac
-	@echo "*** configure.ac has changed ***" >&2
-	@echo "Not running autoconf to avoid tainting universal build" >&2
-	@echo "Please investigate or start from scratch:" >&2
-	@echo "./autogen.sh && ./configure --your-configure-args..." >&2
-	@exit 1
-	# AUTOGEN_TARGET=configure ./autogen.sh
-
-config.status: configure
-	if [ -f config.status ]; then ./config.status --recheck; else \
-	    echo 1>&2 "*** linuxcnc is not configured.	Run './configure' with appropriate flags."; \
-	    exit 1; \
-	fi
-endif
-
-Makefile: config.h
-config.h: config.h.in config.status
-	@./config.status -q --header=$@
-
-INFILES = \
-	../scripts/linuxcnc \
-	Makefile.inc \
-	Makefile.modinc \
-	../tcl/linuxcnc.tcl \
-	../scripts/linuxcncmkdesktop \
-	../lib/python/nf.py \
-	../share/desktop-directories/cnc.directory \
-	../share/menus/CNC.menu \
-	../share/applications/linuxcnc.desktop
-
-$(INFILES): %: %.in config.status
-	@./config.status --file=$@
-
-default: $(INFILES)
+all:
 
 # For each file to be copied to ../include, its location in the source tree
 # is listed here.  Note that due to $(INCLUDE), defined above, the include
