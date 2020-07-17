@@ -211,9 +211,6 @@ objects/emc/usr_intf/gscreen: | objects/emc/usr_intf
 objects/emc/usr_intf/gmoccapy: | objects/emc/usr_intf
 	mkdir $@
 
-objects/emc/usr_intf/axis: | objects/emc/usr_intf
-	mkdir $@
-
 objects/emc/usr_intf/axis/extensions: | objects/emc/usr_intf/axis
 	mkdir $@
 
