@@ -2,7 +2,7 @@ INCLUDES += libnml/linklist
 
 ../include/%.h: ./libnml/linklist/%.h
 	$(ECHO) Copying header file $@
-	$(Q)cp $^ $@
+	cp $^ $@
 ../include/%.hh: ./libnml/linklist/%.hh
 	$(ECHO) Copying header file $@
-	$(Q)cp $^ $@
+	cp $^ $@

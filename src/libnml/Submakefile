@@ -37,7 +37,7 @@ LIBNMLSRCS += libnml/nml/nmlmsg.cc
 LIBNMLSRCS += libnml/nml/stat_msg.cc
 LIBNMLSRCS += libnml/linklist/linklist.cc
 
-$(call TOOBJSDEPS, $(LIBNMLSRCS)) : EXTRAFLAGS=-fPIC
+$(call TOOBJSDEPS, $(LIBNMLSRCS)) : EXTRA_CFLAGS=-fPIC
 
 USERSRCS += $(LIBNMLSRCS)
 

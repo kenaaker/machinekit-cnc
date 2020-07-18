@@ -8,8 +8,7 @@ EMCMODULE := ../lib/python/machinekit.so
 MINIGLMODULE := ../lib/python/minigl.so
 TOGLMODULE := ../lib/python/_togl.so
 
-$(call TOOBJSDEPS, $(TOGLMODULESRCS))  : \
-	EXTRAFLAGS += $(ULFLAGS) $(TCL_CFLAGS)
+$(call TOOBJSDEPS, $(TOGLMODULESRCS))  : EXTRA_CFLAGS += $(ULFLAGS) $(TCL_CFLAGS)
 
 $(call TOOBJSDEPS, $(EMCMODULESRCS)) : Makefile.inc
 
@@ -19,16 +18,16 @@ $(EMCMODULE): $(call TOOBJS, $(EMCMODULESRCS)) \
 	../../machinekit-hal/lib/libmkini.so \
 	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking python module $(notdir $@)
-	$(Q)$(CXX) $(LDFLAGS) -shared -o $@ $^ -L/usr/X11R6/lib -lGL
+	$(CXX) $(LDFLAGS) -shared -o $@ $^ -L/usr/X11R6/lib -lGL
 
 
 $(MINIGLMODULE): $(call TOOBJS, $(MINIGLMODULESRCS))
 	$(ECHO) Linking python module $(notdir $@)
-	$(Q)$(CC) $(LDFLAGS) -shared -o $@ $^ -L/usr/X11R6/lib -lGLU -lGL
+	$(CC) $(LDFLAGS) -shared -o $@ $^ -L/usr/X11R6/lib -lGLU -lGL
 
 $(TOGLMODULE): $(call TOOBJS, $(TOGLMODULESRCS))
 	$(ECHO) Linking python module $(notdir $@)
-	$(Q)$(CC) $(LDFLAGS) -shared -o $@ $^ -L/usr/X11R6/lib \
+	$(CC) $(LDFLAGS) -shared -o $@ $^ -L/usr/X11R6/lib \
 		-lX11 -lGL -lGLU -lXmu $(TCL_LIBS)
 
 PYTARGETS += $(EMCMODULE) $(MINIGLMODULE) $(TOGLMODULE)
@@ -40,10 +39,10 @@ PYTARGETS += $(PYBIN)
 
 
 $(PYBIN): ../bin/%: emc/usr_intf/axis/scripts/%.py
-	@$(ECHO) Syntax checking python script $(notdir $@)
-	$(Q)$(PYTHON) -c 'import sys; compile(open(sys.argv[1]).read(), sys.argv[1], "exec")' $<
+	$(ECHO) Syntax checking python script $(notdir $@)
+	$(PYTHON) -c 'import sys; compile(open(sys.argv[1]).read(), sys.argv[1], "exec")' $<
 	$(ECHO) Copying python script $(notdir $@)
-	$(Q)(echo '#!$(PYTHON)'; sed '1 { /^#!/d; }' $<) > $@.tmp && chmod +x $@.tmp && mv -f $@.tmp $@
+	(echo '#!$(PYTHON)'; sed '1 { /^#!/d; }' $<) > $@.tmp && chmod +x $@.tmp && mv -f $@.tmp $@
 
 PYI18NSRCS += $(addprefix emc/usr_intf/axis/scripts/, $(PYSCRIPTS))  \
 	../lib/python/propertywindow.py \

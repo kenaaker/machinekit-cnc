@@ -1,113 +1,114 @@
 STEPCONF_MODULES = pages build_INI build_HAL
 
-PYTARGETS += ../bin/stepconf  ../lib/python/stepconf/__init__.py ../share/linuxcnc/machinekit-wizard.gif $(patsubst %,../lib/python/stepconf/%.py,$(STEPCONF_MODULES)) \
-	../share/linuxcnc/stepconf/main_page.glade \
-	../share/linuxcnc/stepconf/base.glade \
-	../share/linuxcnc/stepconf/start.glade \
-	../share/linuxcnc/stepconf/pport1.glade \
-	../share/linuxcnc/stepconf/pport2.glade \
-	../share/linuxcnc/stepconf/spindle.glade \
-	../share/linuxcnc/stepconf/options.glade \
-	../share/linuxcnc/stepconf/axisx.glade \
-	../share/linuxcnc/stepconf/axisy.glade \
-	../share/linuxcnc/stepconf/axisz.glade \
-	../share/linuxcnc/stepconf/axisa.glade \
-	../share/linuxcnc/stepconf/finished.glade
+PYTARGETS :=
+PYTARGETS += ../bin/stepconf
+PYTARGETS += ../lib/python/stepconf/__init__.py
+PYTARGETS += ../share/linuxcnc/machinekit-wizard.gif
+PYTARGETS += $(patsubst %,../lib/python/stepconf/%.py,$(STEPCONF_MODULES))
+PYTARGETS += ../share/linuxcnc/stepconf/main_page.glade
+PYTARGETS += ../share/linuxcnc/stepconf/base.glade
+PYTARGETS += ../share/linuxcnc/stepconf/start.glade
+PYTARGETS += ../share/linuxcnc/stepconf/pport1.glade
+PYTARGETS += ../share/linuxcnc/stepconf/pport2.glade
+PYTARGETS += ../share/linuxcnc/stepconf/spindle.glade
+PYTARGETS += ../share/linuxcnc/stepconf/options.glade
+PYTARGETS += ../share/linuxcnc/stepconf/axisx.glade
+PYTARGETS += ../share/linuxcnc/stepconf/axisy.glade
+PYTARGETS += ../share/linuxcnc/stepconf/axisz.glade
+PYTARGETS += ../share/linuxcnc/stepconf/axisa.glade
+PYTARGETS += ../share/linuxcnc/stepconf/finished.glade
 
-PYI18NSRCS += emc/usr_intf/stepconf/stepconf.py $(patsubst %,emc/usr_intf/stepconf/%.py,$(STEPCONF_MODULES)) \
-	emc/usr_intf/stepconf/main_page.glade \
-	emc/usr_intf/stepconf/base.glade \
-	emc/usr_intf/stepconf/start.glade \
-	emc/usr_intf/stepconf/pport1.glade \
-	emc/usr_intf/stepconf/pport2.glade \
-	emc/usr_intf/stepconf/spindle.glade \
-	emc/usr_intf/stepconf/options.glade \
-	emc/usr_intf/stepconf/axisx.glade \
-	emc/usr_intf/stepconf/axisy.glade \
-	emc/usr_intf/stepconf/axisz.glade \
-	emc/usr_intf/stepconf/axisa.glade \
-	emc/usr_intf/stepconf/finished.glade
+PYI18NSRCS := 
+PYI18NSRCS += emc/usr_intf/stepconf/stepconf.py
+PYI18NSRCS += $(patsubst %,emc/usr_intf/stepconf/%.py,$(STEPCONF_MODULES))
+PYI18NSRCS += emc/usr_intf/stepconf/main_page.glade
+PYI18NSRCS += emc/usr_intf/stepconf/base.glade
+PYI18NSRCS += emc/usr_intf/stepconf/start.glade
+PYI18NSRCS += emc/usr_intf/stepconf/pport1.glade
+PYI18NSRCS += emc/usr_intf/stepconf/pport2.glade
+PYI18NSRCS += emc/usr_intf/stepconf/spindle.glade
+PYI18NSRCS += emc/usr_intf/stepconf/options.glade
+PYI18NSRCS += emc/usr_intf/stepconf/axisx.glade
+PYI18NSRCS += emc/usr_intf/stepconf/axisy.glade
+PYI18NSRCS += emc/usr_intf/stepconf/axisz.glade
+PYI18NSRCS += emc/usr_intf/stepconf/axisa.glade
+PYI18NSRCS += emc/usr_intf/stepconf/finished.glade
 
-../lib/python/stepconf/__init__.py:
+../lib/python/stepconf: | ../lib/python
+	mkdir $@
+
+../share/linuxcnc: | ../share
+	mkdir $@
+	
+../share/linuxcnc/stepconf: | ../share/linuxcnc
+	mkdir $@
+	
+../lib/python/stepconf/__init__.py: | ../lib/python/stepconf
 	$(ECHO) building python init $(notdir $@)
-	@mkdir -p ../lib/python/stepconf
-	@touch $@
+	touch $@
 
-../lib/python/stepconf/%: emc/usr_intf/stepconf/%
+../lib/python/stepconf/%: emc/usr_intf/stepconf/% | ../lib/python/stepconf
 	@$(ECHO) Syntax checking python script $(notdir $@)
-	$(Q)$(PYTHON) -c 'import sys; compile(open(sys.argv[1]).read(), sys.argv[1], "exec")' $<
+	$(PYTHON) -c 'import sys; compile(open(sys.argv[1]).read(), sys.argv[1], "exec")' $<
 	$(ECHO) Copying python script $(notdir $@)
-	$(Q)mkdir -p ../lib/python/stepconf
-	$(Q)cp $< $@
+	cp $< $@
 
-../share/linuxcnc/stepconf/main_page.glade: emc/usr_intf/stepconf/main_page.glade
+../share/linuxcnc/stepconf/main_page.glade: emc/usr_intf/stepconf/main_page.glade | ../lib/python/stepconf ../share/linuxcnc/stepconf
 	$(ECHO) Copying glade file $(notdir $@)
-	$(Q)mkdir -p $(dir $@)
-	$(Q)cp -f $< $@
+	cp -f $< $@
 
-../share/linuxcnc/stepconf/base.glade: emc/usr_intf/stepconf/base.glade
+../share/linuxcnc/stepconf/base.glade: emc/usr_intf/stepconf/base.glade | ../lib/python/stepconf
 	$(ECHO) Copying glade file $(notdir $@)
-	$(Q)mkdir -p $(dir $@)
-	$(Q)cp -f $< $@
+	cp -f $< $@
 
-../share/linuxcnc/stepconf/start.glade: emc/usr_intf/stepconf/start.glade
+../share/linuxcnc/stepconf/start.glade: emc/usr_intf/stepconf/start.glade | ../lib/python/stepconf
 	$(ECHO) Copying glade file $(notdir $@)
-	$(Q)mkdir -p $(dir $@)
-	$(Q)cp -f $< $@
+	cp -f $< $@
 
-../share/linuxcnc/stepconf/pport1.glade: emc/usr_intf/stepconf/pport1.glade
+../share/linuxcnc/stepconf/pport1.glade: emc/usr_intf/stepconf/pport1.glade | ../lib/python/stepconf
 	$(ECHO) Copying glade file $(notdir $@)
-	$(Q)mkdir -p $(dir $@)
-	$(Q)cp -f $< $@
+	cp -f $< $@
 
-../share/linuxcnc/stepconf/pport2.glade: emc/usr_intf/stepconf/pport2.glade
+../share/linuxcnc/stepconf/pport2.glade: emc/usr_intf/stepconf/pport2.glade | ../lib/python/stepconf
 	$(ECHO) Copying glade file $(notdir $@)
-	$(Q)mkdir -p $(dir $@)
-	$(Q)cp -f $< $@
+	cp -f $< $@
 
-../share/linuxcnc/stepconf/spindle.glade: emc/usr_intf/stepconf/spindle.glade
+../share/linuxcnc/stepconf/spindle.glade: emc/usr_intf/stepconf/spindle.glade | ../lib/python/stepconf
 	$(ECHO) Copying glade file $(notdir $@)
-	$(Q)mkdir -p $(dir $@)
-	$(Q)cp -f $< $@
+	cp -f $< $@
 
-../share/linuxcnc/stepconf/options.glade: emc/usr_intf/stepconf/options.glade
+../share/linuxcnc/stepconf/options.glade: emc/usr_intf/stepconf/options.glade | ../lib/python/stepconf
 	$(ECHO) Copying glade file $(notdir $@)
-	$(Q)mkdir -p $(dir $@)
-	$(Q)cp -f $< $@
+	cp -f $< $@
 
-../share/linuxcnc/stepconf/axisx.glade: emc/usr_intf/stepconf/axisx.glade
+../share/linuxcnc/stepconf/axisx.glade: emc/usr_intf/stepconf/axisx.glade | ../lib/python/stepconf
 	$(ECHO) Copying glade file $(notdir $@)
-	$(Q)mkdir -p $(dir $@)
-	$(Q)cp -f $< $@
+	cp -f $< $@
 
-../share/linuxcnc/stepconf/axisy.glade: emc/usr_intf/stepconf/axisy.glade
+../share/linuxcnc/stepconf/axisy.glade: emc/usr_intf/stepconf/axisy.glade | ../lib/python/stepconf
 	$(ECHO) Copying glade file $(notdir $@)
-	$(Q)mkdir -p $(dir $@)
-	$(Q)cp -f $< $@
+	cp -f $< $@
 
-../share/linuxcnc/stepconf/axisz.glade: emc/usr_intf/stepconf/axisz.glade
+../share/linuxcnc/stepconf/axisz.glade: emc/usr_intf/stepconf/axisz.glade | ../lib/python/stepconf
 	$(ECHO) Copying glade file $(notdir $@)
-	$(Q)mkdir -p $(dir $@)
-	$(Q)cp -f $< $@
+	cp -f $< $@
 
-../share/linuxcnc/stepconf/axisa.glade: emc/usr_intf/stepconf/axisa.glade
+../share/linuxcnc/stepconf/axisa.glade: emc/usr_intf/stepconf/axisa.glade | ../lib/python/stepconf
 	$(ECHO) Copying glade file $(notdir $@)
-	$(Q)mkdir -p $(dir $@)
-	$(Q)cp -f $< $@
+	cp -f $< $@
 
-../share/linuxcnc/stepconf/finished.glade: emc/usr_intf/stepconf/finished.glade
+../share/linuxcnc/stepconf/finished.glade: emc/usr_intf/stepconf/finished.glade | ../lib/python/stepconf
 	$(ECHO) Copying glade file $(notdir $@)
-	$(Q)mkdir -p $(dir $@)
-	$(Q)cp -f $< $@
+	cp -f $< $@
 
-../share/linuxcnc/machinekit-wizard.gif: ../machinekit-wizard.gif
+../share/linuxcnc/machinekit-wizard.gif: ../machinekit-wizard.gif | ../lib/python/stepconf
 	cp $< $@
 
 ../bin/stepconf: emc/usr_intf/stepconf/stepconf.py
-	@$(ECHO) Syntax checking python script $(notdir $@)
-	$(Q)$(PYTHON) -c 'import sys; compile(open(sys.argv[1]).read(), sys.argv[1], "exec")' $<
+	$(ECHO) Syntax checking python script $(notdir $@)
+	$(PYTHON) -c 'import sys; compile(open(sys.argv[1]).read(), sys.argv[1], "exec")' $<
 	$(ECHO) Copying python script $(notdir $@)
-	$(Q)(echo '#!$(PYTHON)'; sed '1 { /^#!/d; }' $<) > $@.tmp && chmod +x $@.tmp && mv -f $@.tmp $@
+	(echo '#!$(PYTHON)'; sed '1 { /^#!/d; }' $<) > $@.tmp && chmod +x $@.tmp && mv -f $@.tmp $@
 
 clean: stepconf-clean
 stepconf-clean:

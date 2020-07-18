@@ -34,7 +34,7 @@ LIBRS274SRCS := $(addprefix emc/rs274ngc/, \
 	rs274ngc_pre.cc)
 USERSRCS += $(LIBRS274SRCS)
 
-$(call TOOBJSDEPS, $(LIBRS274SRCS)) : EXTRAFLAGS=-fPIC  $(BOOST_DEBUG_FLAGS) 
+$(call TOOBJSDEPS, $(LIBRS274SRCS)): EXTRA_CFLAGS=-fPIC $(BOOST_DEBUG_FLAGS) 
 
 TARGETS += ../lib/librs274.so ../lib/librs274.so.0
 
@@ -44,17 +44,16 @@ TARGETS += ../lib/librs274.so ../lib/librs274.so.0
 	../../machinekit-hal/lib/libhal.so.0 \
 	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	@mkdir -p ../lib
-	@rm -f $@
-	$(Q)$(CXX) -g $(LDFLAGS) -Wl,-soname,$(notdir $@) -shared -o $@ $^ \
+	rm -f $@
+	$(CXX) -g $(LDFLAGS) -Wl,-soname,$(notdir $@) -shared -o $@ $^ \
 	    -lstdc++ -l$(BOOST_PYTHON_LIB) $(PYTHON_LIBS) -ldl
 
 ../include/%.h: ./emc/rs274ngc/%.h
 	$(ECHO) Copying header file $@
-	$(Q)cp $^ $@
+	cp $^ $@
 ../include/%.hh: ./emc/rs274ngc/%.hh
 	$(ECHO) Copying header file $@
-	$(Q)cp $^ $@
+	cp $^ $@
 
 GCODEMODULESRCS := emc/rs274ngc/gcodemodule.cc
 PYSRCS += $(GCODEMODULESRCS)
@@ -62,7 +61,7 @@ PYSRCS += $(GCODEMODULESRCS)
 GCODEMODULE := ../lib/python/gcode.so
 $(GCODEMODULE): $(call TOOBJS, $(GCODEMODULESRCS)) ../lib/librs274.so.0
 	$(ECHO) Linking python module $(notdir $@)
-	$(Q)$(CXX) $(LDFLAGS) -shared -o $@ $^ -lstdc++
+	$(CXX) $(LDFLAGS) -shared -o $@ $^ -lstdc++
 
 
 PYTARGETS += $(GCODEMODULE)
@@ -71,8 +70,7 @@ PREVIEWMODULESRCS := emc/rs274ngc/previewmodule.cc
 
 PYSRCS += $(PREVIEWMODULESRCS)
 
-$(call TOOBJSDEPS, $(PREVIEWMODULESRCS)) : Makefile.inc
-$(call TOOBJSDEPS, $(PREVIEWMODULESRCS)) : EXTRAFLAGS += -Ihal/haltalk $(CZMQ_CFLAGS) $(PROTOBUF_CFLAGS)
+$(call TOOBJSDEPS, $(PREVIEWMODULESRCS)) : EXTRA_CFLAGS += -Ihal/haltalk $(CZMQ_CFLAGS) $(PROTOBUF_CFLAGS)
 
 PREVIEWMODULE := ../lib/python/preview.so
 

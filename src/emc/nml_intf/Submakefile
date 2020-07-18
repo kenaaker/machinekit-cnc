@@ -16,7 +16,7 @@ LIBEMCSRCS := \
     emc/nml_intf/interpl.cc
 USERSRCS += $(LIBEMCSRCS)
 
-$(call TOOBJSDEPS, $(LIBEMCSRCS)) : EXTRAFLAGS=-fPIC
+$(call TOOBJSDEPS, $(LIBEMCSRCS)) : EXTRA_CFLAGS=-fPIC
 
 TARGETS += ../lib/libmachinekit.a
 

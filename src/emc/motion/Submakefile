@@ -2,10 +2,10 @@ INCLUDES += emc/motion $(EMC2_HOME)/include
 
 ../include/%.h: ./emc/motion/%.h
 	$(ECHO) Copying header file $@
-	$(Q)cp $^ $@
+	cp $^ $@
 ../include/%.hh: ./emc/motion/%.hh
 	$(ECHO) Copying header file $@
-	$(Q)cp $^ $@
+	cp $^ $@
 
 $(eval $(call c_comp_build_rules,emc/motion/motmod.o, \
 	emc/kinematics/cubic.o \

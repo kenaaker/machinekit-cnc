@@ -23,5 +23,5 @@ LIBREADLINE=-lreadline
 	../lib/libpyplugin.so.0 \
 	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(Q)$(CXX) $(LDFLAGS) $(PROFILE_LDFLAGS) \
+	$(CXX) $(LDFLAGS) $(PROFILE_LDFLAGS) \
 	-o $@ $^ $(ULFLAGS) -l$(BOOST_PYTHON_LIB) $(PYTHON_LIBS) $(LIBREADLINE)

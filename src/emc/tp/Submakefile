@@ -4,10 +4,10 @@ INCLUDES += $(TP_DIR) ../include
 
 ../include/%.h: ./$(TP_DIR)/%.h
 	$(ECHO) Copying header file $@
-	$(Q)cp $^ $@
+	cp $^ $@
 ../include/%.hh: ./$(TP_DIR)/%.hh
 	$(ECHO) Copying header file $@
-	$(Q)cp $^ $@
+	cp $^ $@
 
 
 $(eval $(call c_comp_build_rules,$(TP_DIR)/tp.o, \

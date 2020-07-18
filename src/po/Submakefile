@@ -1,65 +1,68 @@
-../share/locale/%/LC_MESSAGES/linuxcnc.mo: po/%.po
+../share/locale/%/LC_MESSAGES/linuxcnc.mo: po/%.po | ../share/local/%/LC_MESSAGES
 	$(ECHO) Compiling localized message catalog $@
-	@mkdir -p $(dir $@)
-	$(Q)$(MSGFMT) -o $@ $<
+	$(MSGFMT) -o $@ $<
 
-../share/locale/%/LC_MESSAGES/gmoccapy.mo: po/gmoccapy/%.po
+./share/locale/%/LC_MESSAGES/gmoccapy.mo: po/gmoccapy/%.po | ../share/local/%/LC_MESSAGES
 	$(ECHO) Compiling localized gmoccapy message catalog $@
-	@mkdir -p $(dir $@)
-	$(Q)$(MSGFMT) -o $@ $<
+	$(MSGFMT) -o $@ $<
 
 # the touch is because for po/zh_CN.po, msgfmt --tcl creates
 # objects/zh_cn.po and on the next invocation make would try again to
 # create zh_CN.po
-objects/%.msg: po/%.po
+#objects/%.msg: po/%.po
+objects/%.msg: po/%.po | objects
 	$(ECHO) Compiling localized message catalog $@
-	$(Q)$(MSGFMT) --tcl -d objects -l $* $< && touch $@
+	$(MSGFMT) --tcl -d objects -l $* $< && touch $@
 
 MO_FILES := $(patsubst po/%.po, %/LC_MESSAGES/linuxcnc.mo, $(wildcard po/*.po))
+
 MO_FILES += $(patsubst po/gmoccapy/%.po, %/LC_MESSAGES/gmoccapy.mo, $(wildcard po/gmoccapy/*.po))
+#$(error $$(MO_FILES) = $(MO_FILES))
 
-$(DESTDIR)$(localedir)/%/LC_MESSAGES/linuxcnc.mo: ../share/locale/%/LC_MESSAGES/linuxcnc.mo
+DESTDIR := ../share/
+localedir := locale
+
+$(DESTDIR)$(localedir)/%/LC_MESSAGES/linuxcnc.mo: po/%.po | ../share/locale/%/LC_MESSAGES
 	$(DIR) $(DESTDIR)$(localedir)/$*/LC_MESSAGES
 	$(FILE) $< $@
-
-$(DESTDIR)$(localedir)/%/LC_MESSAGES/gmoccapy.mo: ../share/locale/%/LC_MESSAGES/gmoccapy.mo
+	
+$(DESTDIR)$(localedir)/%/LC_MESSAGES/gmoccapy.mo: po/gmoccapy/%.po | ../share/locale/%/LC_MESSAGES
 	$(DIR) $(DESTDIR)$(localedir)/$*/LC_MESSAGES
 	$(FILE) $< $@
+	
+TARGETS += $(patsubst po/%.po, ../share/locale/%/LC_MESSAGES/linuxcnc.mo, $(wildcard po/*.po))
 
-TARGETS += $(patsubst po/%.po, \
-	../share/locale/%/LC_MESSAGES/linuxcnc.mo, \
-	$(wildcard po/*.po))
+TARGETS += $(patsubst po/gmoccapy/%.po, ../share/locale/%/LC_MESSAGES/gmoccapy.mo, $(wildcard po/gmoccapy/*.po))
 
-TARGETS += $(patsubst po/gmoccapy/%.po, \
-	../share/locale/%/LC_MESSAGES/gmoccapy.mo, \
-	$(wildcard po/gmoccapy/*.po))
-
-TCLSRCS := \
-	../tcl/bin/emccalib.tcl \
-	../tcl/bin/emcdebug.tcl \
-	../tcl/bin/emctesting.tcl \
-	../tcl/bin/emctuning.tcl \
-	../tcl/bin/genedit.tcl \
-	../tcl/bin/halconfig.tcl \
-	../tcl/bin/halshow.tcl \
-	../tcl/bin/pickconfig.tcl \
-	../tcl/bin/tkbackplot.tcl \
-	../tcl/mini.tcl \
-	../tcl/show_errors.tcl \
-	../tcl/tklinuxcnc.tcl \
-	../tcl/scripts/Set_Coordinates.tcl \
-	../tcl/scripts/balloon.tcl \
-	../tcl/scripts/emchelp.tcl \
-	../tcl/ngcgui.tcl \
-	../tcl/ngcgui_ttt.tcl \
-	../tcl/ngcgui_app.tcl \
-	../tcl/tooledit.tcl
+TCLSRCS :=
+TCLSRCS += ../tcl/bin/emccalib.tcl
+TCLSRCS += ../tcl/bin/emcdebug.tcl
+TCLSRCS += ../tcl/bin/emctesting.tcl
+TCLSRCS += ../tcl/bin/emctuning.tcl
+TCLSRCS += ../tcl/bin/genedit.tcl
+TCLSRCS += ../tcl/bin/halconfig.tcl
+TCLSRCS += ../tcl/bin/halshow.tcl
+TCLSRCS += ../tcl/bin/pickconfig.tcl
+TCLSRCS += ../tcl/bin/tkbackplot.tcl
+TCLSRCS += ../tcl/mini.tcl
+TCLSRCS += ../tcl/show_errors.tcl
+TCLSRCS += ../tcl/tklinuxcnc.tcl
+TCLSRCS += ../tcl/scripts/Set_Coordinates.tcl
+TCLSRCS += ../tcl/scripts/balloon.tcl
+TCLSRCS += ../tcl/scripts/emchelp.tcl
+TCLSRCS += ../tcl/ngcgui.tcl
+TCLSRCS += ../tcl/ngcgui_ttt.tcl
+TCLSRCS += ../tcl/ngcgui_app.tcl
+TCLSRCS += ../tcl/tooledit.tcl
 
 po/linuxcnc.pot:
 	$(ECHO) Localizing linuxcnc.pot
-	@(cd ..; $(XGETTEXT) -k_ -o src/$@ `src/po/fixpaths.py -j src $^`)
-	@touch $@
-TARGETS += po/linuxcnc.pot
+	(cd ..; $(XGETTEXT) -k_ -o src/$@ `src/po/fixpaths.py -j src $^`)
+	touch $@
+
+.PHONY: install-locale
+
+TARGETS += po/linuxcnc.pot install-locale
 
 pofiles: po/linuxcnc.pot
 	set -x; for i in po/*.po; do msgmerge -U $$i po/linuxcnc.pot; done
@@ -71,9 +74,7 @@ po/linuxcnc.pot: emc/motion/control.c emc/motion/command.c emc/motion/motmod.c e
 po/linuxcnc.pot: $(TCLSRCS)
 po/linuxcnc.pot: $(PYI18NSRCS)
 
-.PHONY: install-locale
 install-locale: $(addprefix $(DESTDIR)$(localedir)/, $(MO_FILES))
-install-kernel-indep: install-locale
 
 clean: po-clean
 po-clean:

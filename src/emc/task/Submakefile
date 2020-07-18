@@ -1,7 +1,6 @@
 INCLUDES += emc/motion
 
-EMCSVRSRCS := \
-	emc/task/emcsvr.cc
+EMCSVRSRCS := emc/task/emcsvr.cc
 USERSRCS += $(EMCSVRSRCS)
 
 ../bin/machinekitsvr: $(call TOOBJS, $(EMCSVRSRCS)) \
@@ -26,8 +25,7 @@ MILLTASKSRCS := \
 	emc/motion/stashf.c \
 	emc/task/taskmodule.cc \
 	emc/task/taskclass.cc \
-	emc/task/backtrace.cc \
-	$(ULAPISRCS)
+	emc/task/backtrace.cc
 USERSRCS += $(MILLTASKSRCS)
 
 #LDFLAGS +=

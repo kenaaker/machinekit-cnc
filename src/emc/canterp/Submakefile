@@ -1,7 +1,7 @@
 LIBCANTERPSRCS := emc/canterp/canterp.cc
 USERSRCS += $(LIBCANTERPSRCS)
 TARGETS += ../lib/libcanterp.so ../lib/libcanterp.so.0
-$(call TOOBJSDEPS, $(LIBCANTERPSRCS)) : EXTRAFLAGS=-fPIC
+$(call TOOBJSDEPS, $(LIBCANTERPSRCS)) : EXTRA_CFLAGS=-fPIC
 ../lib/libcanterp.so.0: $(patsubst %.cc,objects/%.o,$(LIBCANTERPSRCS)) ../../machinekit-hal/lib/libmkini.so ../lib/librs274.so
 	$(ECHO) Creating shared library $(notdir $@)
 	@mkdir -p ../lib

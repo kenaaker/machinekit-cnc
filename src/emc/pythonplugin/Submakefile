@@ -17,18 +17,15 @@ endif
 
 USERSRCS += $(LIBPPSRCS)
 
-USERSRCS += $(TESTSRCS)
-
-$(call TOOBJSDEPS, $(LIBPPSRCS)) : EXTRAFLAGS=-fPIC $(BOOST_DEBUG_FLAGS) 
+$(call TOOBJSDEPS, $(LIBPPSRCS)) : EXTRA_CFLAGS=-fPIC $(BOOST_DEBUG_FLAGS) 
 
 
 TARGETS += ../lib/libpyplugin.so.0 
 
 ../lib/libpyplugin.so.0: $(patsubst %.cc,objects/%.o,$(LIBPPSRCS)) ../../machinekit-hal/lib/libmkini.so
 	$(ECHO) Linking $(notdir $@)
-	@mkdir -p ../lib
-	@rm -f $@
-	$(Q)$(CXX) -g $(LDFLAGS) -Wl,-soname,$(notdir $@) -shared -o $@ $^ \
+	rm -f $@
+	$(CXX) -g $(LDFLAGS) -Wl,-soname,$(notdir $@) -shared -o $@ $^ \
 	    -lstdc++ -l$(BOOST_PYTHON_LIB) $(PYTHON_LIBS)
 
 

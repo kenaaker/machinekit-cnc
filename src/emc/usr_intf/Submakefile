@@ -38,13 +38,10 @@ ifeq "$(BUILD_EMCWEB)" "yes"
 USERSRCS += $(EMCWEBSRCS)
 endif
 
-$(call TOOBJSDEPS, $(TCLSRCS)) : EXTRAFLAGS = $(ULFLAGS) $(TCL_CFLAGS)
-$(call TOOBJSDEPS, $(EMCSHSRCS)) : EXTRAFLAGS = $(ULFLAGS) $(TCL_CFLAGS) -fPIC
-ifeq "$(RUN_IN_PLACE)" "yes"
-$(call TOOBJSDEPS, $(EMCWEBSRCS)) : EXTRAFLAGS = -D__DIR__=\"$(EMC2_HOME)\"  -fPIC
-else
-$(call TOOBJSDEPS, $(EMCWEBSRCS)) : EXTRAFLAGS = -D__DIR__=\"/var/cache/machinekit\"  -fPIC
-endif
+$(call TOOBJSDEPS, $(TCLSRCS)) : EXTRA_CFLAGS = $(ULFLAGS) xxxxx_ZZZZZ $(TCL_CFLAGS)
+$(call TOOBJSDEPS, $(EMCSHSRCS)) : EXTRA_CFLAGS = $(ULFLAGS) $(TCL_CFLAGS) -fPIC
+
+$(call TOOBJSDEPS, $(EMCWEBSRCS)) : EXTRA_CFLAGS = -D__DIR__=\"$(EMC2_HOME)\"  -fPIC
 
 ../tcl/machinekit.so: $(call TOOBJS, $(EMCSHSRCS)) $(OBJDIR)/emc/rs274ngc/modal_state.o \
 	../lib/libmachinekit.a \

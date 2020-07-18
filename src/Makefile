@@ -11,90 +11,83 @@ endif
 
 # Delete the default suffix rules
 .SUFFIXES:
-.PHONY: default userspace modules clean modclean depclean docclean install python pythonclean cscope cscopeclean
+.PHONY: all userspace modules clean modclean depclean install python pythonclean userspace
 
-# A "trivial build" is one which should not include dependency information
-# either because it should be usable before dependency information can be
-# generated or when it is invalid (clean, docclean) or when running as root
-# when the user must guarantee in advance that everything is built
-# (setuid, install)
-ifeq ($(MAKECMDGOALS),)
-TRIVIAL_BUILD=no
-else
-ifeq ($(filter-out clean setuid install tags swish,$(MAKECMDGOALS)),)
-TRIVIAL_BUILD=yes
-else
-TRIVIAL_BUILD=no
-endif
-endif
-
-# asciidoctor frontmatter generation for comp/instcomp
-# this assumes we're running inside a git repo.
-# if not, override EDIT_REMOTE EDIT_REPO EDIT_BRANCH via the environment, eg
-#  EDIT_REMOTE=machinekit  make manpages  i_docpages
-
-EDIT_REMOTE ?= origin
-EDIT_REPO  ?= $(shell git ls-remote --get-url $(EDIT_REMOTE)  |sed 's/.git$$//')
-EDIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
-# $(info EDIT_REMOTE=$(EDIT_REMOTE) EDIT_BRANCH=$(EDIT_BRANCH)  EDIT_REPO=$(EDIT_REPO))
-
-# Beautify output
-# ---------------------------------------------------------------------------
-#
-# A simple variant is to prefix commands with  - that's useful
-# for commands that shall be hidden in non-verbose mode.
-#
-#	ln $@ :<
-#
-# If BUILD_VERBOSE equals 0 then the above command will be hidden.
-# If BUILD_VERBOSE equals 1 then the above command is displayed.
-
-ifeq ("$(origin V)", "command line")
-  BUILD_VERBOSE = $(V)
-endif
-ifndef BUILD_VERBOSE
-  BUILD_VERBOSE = 0
-endif
-
-ifeq ($(BUILD_VERBOSE),1)
-  Q =
-else
-  Q = @
-endif
-
-ifeq "$(findstring s,$(MAKEFLAGS))" ""
-ECHO=@echo
-VECHO=echo
-else
-ECHO=@true
-VECHO=true
-endif
+ECHO=echo
 
 BUILD_KBUILD = no
 
 LDFLAGS += $(CROSS_COMPILE_FLAGS)
 
-# extract the version from the kernel source version.h
-ifneq ($(KERNELDIR),)
-KERNEL_VERS = $(shell $(BASEPWD)/../scripts/kernel-vers.sh $(KERNELDIR))
-endif
-
-ifeq ($(BASEPWD),)
 BASEPWD := $(shell pwd)
 export BASEPWD
-include Makefile.inc
+
 ifeq ($(origin PYTHONPATH),undefined)
-PYTHONPATH:=$(EMC2_HOME)/lib/python
+	PYTHONPATH := $(BASEPWD)/lib/python
 else
-PYTHONPATH:=$(EMC2_HOME)/lib/python:$(PYTHONPATH)
+	PYTHONPATH := $(BASEPWD)/lib/python:${PYTHONPATH}
 endif
 export PYTHONPATH
-else
-include $(BASEPWD)/Makefile.inc
-endif
+
+# Configuration values.
+
+# General stuff
+CPPFLAGS :=
+CC = $(CROSS_COMPILE)gcc
+CC_FOR_BUILD = $(CROSS_COMPILE)gcc
+OBJCOPY = $(CROSS_COMPILE)objcopy
+LD = $(CROSS_COMPILE)ld
+
+MSGFMT = /usr/bin/msgfmt
+XGETTEXT = /usr/bin/xgettext
+
+OPT := -O2
+
+DEBUG := -g
+
+CXXFLAGS := $(OPT) $(DEBUG)
+
+ULFLAGS = -D_GNU_SOURCE -DLOCALE_DIR=\"$(localedir)\" -DPACKAGE=\"$(package)\"
+
+# deps for xemc
+XLIBS := -lX11 -lXaw -lXt
+HAVE_XAW := yes
+
+# General library directory
+LIB_DIR=/afs/aaker.org/home/kdaaker/src/CAM_stuff/machinekit/machinekit-cnc/lib
+
+# ncurses support for keystick
+KEYSTICKLIBS := -lncurses
+HAVE_NCURSES := yes
+
+# emcweb UI
+BUILD_EMCWEB := no
+
+# Python-related
+BUILD_PYTHON=yes
+PYTHON_CPPFLAGS=-I/usr/include/python2.7
+PYTHON_LIBS=-lpython2.7
+BOOST_PYTHON_LIB=boost_python
+SITEPY=/usr/lib/python2.7/dist-packages
+CYTHON=/usr/bin/cython
+
+
+
+# Install related stuff.
+DESTDIR := /usr
+localedir := cnc_msgs
+
+# tcl tk cflags, includes and libs
+TCL_DBGX=
+TK_DBGX=
+TCL_CFLAGS=-I=/usr/include/tcl8.6 -DUSE_TCL_STUBS
+TCL_LIBS=-L=/usr/lib/arm-linux-gnueabihf -ltclstub8.6 -lX11 -lXss -lXext -lXft -lfontconfig -lfreetype -lfontconfig -lpthread -ldl -lz -lpthread -lm -L/usr/lib/arm-linux-gnueabihf -ltk8.6 -lGL -lXinerama
+
+EXTRA_CFLAGS :=
 
 # default target:  put before everything else
-default:
+all: configs userspace modules
+
 
 #############################################################################################
 
@@ -114,8 +107,6 @@ cc-option = $(shell \
 
 #############################################################################################
 
-
-default: configs userspace modules
 
 # Print 'entering' all the time
 MAKEFLAGS += w
@@ -163,9 +154,12 @@ OBJ_DIRS := $(patsubst %,objects/%,$(SUBDIRS))
 OBJ_DIRS += objects/emc/motion
 OBJ_DIRS += objects/emc/usr_intf/axis/extensions
 	
-$(OBJDIR):
+../lib/:
 	mkdir $@
 
+$(OBJDIR):
+	mkdir $@
+	
 objects/libnml: | objects
 	mkdir $@
 
@@ -253,9 +247,29 @@ objects/emc/pythonplugin: | objects/emc
 objects/po: | objects
 	mkdir $@
 
-# moved to src/rtapi/Submakefile
-# ULAPISRCS := rtapi/$(RTPREFIX)_ulapi.c
+../share:
+	mkdir $@
+	
+../share/locale: | ../share
+	mkdir $@
 
+../share/locale/%: po/%.po | ../share/locale
+	mkdir $@
+
+../share/locale/%: po/gmoccapy/%.po | ../share/locale
+	mkdir $@
+	
+../share/locale/%/LC_MESSAGES: po/%.po | ../share/locale/%
+	mkdir $@
+
+../share/locale/%/LC_MESSAGES: po/gmoccapy/%.po | ../share/locale/%
+	mkdir $@
+
+#../share/locale/%/LC_MESSAGES: | ../share/locale/%
+#	mkdir $@
+
+.PRECIOUS: ../share/locale/% ../share/locale/%/LC_MESSAGES
+	
 # Each item in INCLUDES is transformed into a -I directive later on
 # The top directory is always included
 INCLUDES := .
@@ -263,7 +277,6 @@ INCLUDES += ../include
 INCLUDES += ../../machinekit-hal/include
 
 USERSRCS :=
-RTSRCS :=
 PROGRAMS :=
 
 HAL_LIB := -L../../machinekit-hal/lib
@@ -300,44 +313,6 @@ $$(patsubst $$(dir $(1))%.c,$(OBJDIR)/%.o,$$(addprefix $(OBJDIR)/,$(1) $(2))):
 $$(patsubst $$(dir $(1))%.o,$(RTLIBDIR)/%.so,$(1)): $$(addprefix $(OBJDIR)/,$(1) $(2))
 
 endef
-# Debugging
-#$$(info $(call c_comp_build_rules,hal/components/encoderv2.o))
-
-###############################################################################
-# C unit test setup
-#
-# This macro generates rules for C unit tests; e.g.
-#
-# $(eval $(call setup_test, \
-#     dir/test_src, RTAPI, dir/ulapi_srcs.c, dir/rtapi_srcs.c), ../lib/lib.so, \
-#    -lfoo, wrap_funct)
-#
-# expands to:
-#
-# RTSRCS += dir/main_src.c
-# objects/dir/test_src_RTAPI: \
-#		objects/dir/ulapi_srcs.o \
-#		$(OBJDIR)/dir/rtapi_srcs.o $(OBJDIR)/dir/test_src.o \
-#		../lib/lib.so
-#	@echo Linking test objects/dir/test_src_RTAPI
-#	gcc -o objects/dir/test_src_RTAPI -g -DRTAPI \
-#		$(OBJDIR)/dir/test_src.o \
-#		objects/dir/ulapi_srcs.o $(OBJDIR)/dir/rtapi_srcs.o \
-#		../lib/lib.so -lfoo -Wl,--wrap=wrap_funct
-# CMOCKA_TESTS +=  dir/test_src_RTAPI
-#
-# ...and does the equivalent for ULAPI as well.
-
-WL_WRAP = -Wl,--wrap=
-define setup_test
-$$(if $$(filter RTAPI,$(2)),RTSRCS,USERSRCS) += $(1).c
-objects/$(1)_$(strip $(2)): \
-		$$(call $$(if $$(filter RTAPI,$(2)),TORTOBJS,TOOBJS), $(1).c) \
-		$$(call TOOBJS, $(3)) $$(call TORTOBJS, $(4)) $(5)
-	$(CROSS_COMPILE)gcc $(CROSS_COMPILE_FLAGS) -o $$@ -g $$^ -lcmocka $(6) $$(addprefix $$(WL_WRAP),$(7))
-CMOCKA_TESTS += $(1)_$(strip $(2))
-
-endef
 
 ###############################################################################
 
@@ -350,10 +325,9 @@ $(info All Submakefiles included)
 # or C++ files
 ASSERT_EMPTY = $(if $(1), $(error "Should be empty but is not: $(1)"))
 $(call ASSERT_EMPTY,$(filter-out %.c %.cc %.js %.proto, $(USERSRCS)))
-$(call ASSERT_EMPTY,$(filter-out %.c %.proto, $(RTSRCS)))
 
 ifeq ($(BUILD_PYTHON),yes)
-$(call TOOBJS,$(PYSRCS)) : EXTRAFLAGS += -fPIC $(call cc-option,-fno-strict-aliasing)
+$(call TOOBJS,$(PYSRCS)) : EXTRA_CFLAGS += -fPIC -fno-strict-aliasing
 USERSRCS += $(PYSRCS)
 endif
 
@@ -364,26 +338,17 @@ CUSEROBJS = $(call TOOBJS,$(CUSERSRCS))
 CXXUSEROBJS += $(call TOOBJS,$(CXXUSERSRCS))
 
 # Find the list of build-arch object files for C sources
+USERSRCS_BUILD :=
 CUSERSRCS_BUILD := $(filter %.c,$(USERSRCS_BUILD))
 CUSEROBJS_BUILD := $(call TOOBJS,$(CUSERSRCS_BUILD),_build)
 
-ifeq ($(TRIVIAL_BUILD),no)
-
-ifeq ($(USE_PROTOBUF),yes)
-# force create of %.proto-dependent files and their deps
-Makefile: $(GENERATED) $(PROTO_DEPS)
--include $(PROTO_DEPS)
-endif
-
 # Find the dependency filenames, then include them all
-DEPS := $(sort $(patsubst %.o,%.d,$(CUSEROBJS) $(CXXUSEROBJS) \
-	$(CUSEROBJS_BUILD)))
+DEPS := $(patsubst %.o,%.d,$(CUSEROBJS) $(CXXUSEROBJS) $(CUSEROBJS_BUILD))
 READ_DEPS = $(wildcard $(DEPS))
 $(shell echo 1>&2 Reading $(words $(READ_DEPS))/$(words $(DEPS)) dependency files)
 -include $(READ_DEPS)
 UNREAD_DEPS = $(filter-out $(READ_DEPS), $(DEPS))
 $(shell echo 1>&2 Done reading dependencies)
-endif
 
 # Each directory in $(INCLUDES) is passed as a -I directory when compiling.
 INCLUDE := $(patsubst %,-I%, $(INCLUDES))
@@ -396,42 +361,30 @@ endif
 GIT_BUILD_SHA := $(shell ../scripts/get-git-sha)
 
 # Compilation options.	Perhaps some of these should come from Makefile.inc? (CXXFLAGS now does)
-INTEGER_OVERFLOW_FLAGS := $(call cc-option,-fwrapv) $(call cc-option, -fno-strict-overflow)
-OPT :=  $(INTEGER_OVERFLOW_FLAGS)
-DEBUG := -g -Wall -funwind-tables
-PROFILE_CFLAGS :=
-PROFILE_LDFLAGS :=
+INTEGER_OVERFLOW_FLAGS := -fwrapv -fno-strict-overflow
+OPT +=  $(INTEGER_OVERFLOW_FLAGS)
+DEBUG += -g -Wall -funwind-tables
 
-CFLAGS := $(INCLUDE) -I$(EMC2_HOME)/include $(OPT) $(DEBUG) $(DPKG_CFLAGS) $(PROFILE_CFLAGS) \
-	-DULAPI $(call cc-option,-std=gnu99 -fgnu89-inline)
+CFLAGS := $(INCLUDE) -I$(BASEPWD)/include $(OPT) $(DEBUG) -DULAPI -std=gnu99 -fgnu89-inline
 
 # enable runtime comparison of GIT_CONFIG_SHA (config.h) and GIT_BUILD_SHA
 CFLAGS += -DGIT_BUILD_SHA=\"'$(GIT_BUILD_SHA)'\"
 
 CFLAGS += $(CROSS_COMPILE_FLAGS)
 
-# make ck_pr.h happy:
-CFLAGS += $(CK_CFLAGS)
-
-# if not initialised use innocuous switch to prevent errors
-ifeq ($(ARCH_CFLAGS),@ARCH_CFLAGS@)
-ARCH_CFLAGS := -Wunused
-endif
-
 BASE_CXXFLAGS:= $(INCLUDE) \
 		$(CROSS_COMPILE_FLAGS) \
 		$(CXXFLAGS) \
-		$(CK_CFLAGS) \
-		$(DEBUG) $(DPKG_CFLAGS) $(OPT) \
-		$(PROFILE_CFLAGS) \
-		 -DGIT_BUILD_SHA=\"'$(GIT_BUILD_SHA)'\" \
-		$(ARCH_CFLAGS)
+		$(OPT) \
+		$(DEBUG) \
+		-DGIT_BUILD_SHA=\"'$(GIT_BUILD_SHA)'\"
 
 CXXFLAGS :=   $(BASE_CXXFLAGS) -DULAPI
 RT_CXXFLAGS :=   $(BASE_CXXFLAGS)
 
 CXX := $(CROSS_COMPILE)g++
 
+RUN_IN_PLACE := yes
 ifeq ($(RUN_IN_PLACE),yes)
 LDFLAGS += -L$(LIB_DIR) -Wl,-rpath,../lib:../../machinekit-hal/lib
 else
@@ -441,14 +394,14 @@ LDFLAGS += -Wl,--no-as-needed
 
 # Rules to make .o (object) files
 $(CUSEROBJS) : objects/%.o: %.c | $(OBJ_DIRS)
-	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(EXTRAFLAGS) -MMD -MF "${@:.o=.d}" -MT "$@" $< -o $@
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(EXTRA_CFLAGS) -MMD -MF "${@:.o=.d}" -MT "$@" $< -o $@
 
 # Rules to make .o (object) files, build arch
 $(CUSEROBJS_BUILD) : objects/%_build.o: %.c | $(OBJ_DIRS)
-	$(CC_FOR_BUILD) -c $(CFLAGS) $(EXTRAFLAGS) -MMD -MF "${@:.o=.d}" -MT "$@" $< -o $@
+	$(CC_FOR_BUILD) -c $(CFLAGS) $(EXTRA_CFLAGS) -MMD -MF "${@:.o=.d}" -MT "$@" $< -o $@
 
 $(CXXUSEROBJS) : objects/%.o: %.cc | $(OBJ_DIRS)
-	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $(EXTRAFLAGS) -MMD -MF "${@:.o=.d}" -MT "$@" $< -o $@
+	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $(EXTRA_CFLAGS) -MMD -MF "${@:.o=.d}" -MT "$@" $< -o $@
 
 all:
 
@@ -543,8 +496,7 @@ HEADERS := \
 
 ## the "headers" target installs all the header files in ../include
 .PHONY: headers
-HEADERS := $(patsubst %,../include/%,$(foreach h,$(HEADERS),$(notdir $h)))
-headers: $(HEADERS)
+SUBDIRECTORY_HEADERS := $(patsubst %,../include/%,$(foreach h,$(HEADERS),$(notdir $h)))
 
 # install header files as part of the build
 TARGETS += headers
@@ -600,12 +552,17 @@ TARGETS += ../bin/gremlin_view
 userspace: $(TARGETS)
 
 ifeq ($(BUILD_PYTHON),yes)
+
 pythonclean:
 	rm -f $(PYTARGETS)
 	find ../lib/python -name '*.so' -exec rm {} +
+
 python: $(PYTARGETS)
+
 userspace: python
-clean: pythonclean cscopeclean
+
+clean: pythonclean
+
 endif
 
 # These rules clean things up.	'modclean' cleans files generated by 'modules'
@@ -675,22 +632,12 @@ EXE=install -m 0755 -o root
 SETUID=install -m 4755 -o root
 GLOB=$(wildcard $(1))
 
-ifeq ($(RUN_IN_PLACE),yes)
-define ERROR_MESSAGE
-You configured run-in-place, but are trying to install.
-For an installable version, run configure without --enable-run-in-place
-and rebuild
-endef
-install:
-	$(error $(ERROR_MESSAGE))
-
 MENUS = ../share/menus/CNC.menu \
     ../share/desktop-directories/cnc.directory \
     ../share/applications/linuxcnc.desktop \
 
 install-menus install-menu: $(MENUS)
 	cp $< $(HOME)/.config/menus/applications-merged
-else
 
 DOCS_HELP=$(call GLOB,../help/*)
 NC_FILES=$(filter-out %/butterfly.ngc,$(call GLOB,../nc_files/*))
@@ -757,10 +704,6 @@ install-kernel-indep: install-dirs
 	$(EXE) ../scripts/linuxcnc_info $(DESTDIR)$(bindir)
 	$(EXE) ../scripts/linuxcncmkdesktop $(DESTDIR)$(bindir)
 	$(EXE) ../scripts/latency-test $(DESTDIR)$(bindir)
-ifeq ($(HAVE_WORKING_BLT),yes)
-	$(EXE) ../scripts/latency-plot $(DESTDIR)$(bindir)
-	$(EXE) ../scripts/latency-histogram $(DESTDIR)$(bindir)
-endif
 	$(FILE) $(filter ../lib/%.a ../lib/%.so.0,$(TARGETS)) $(DESTDIR)$(libdir)
 	cp --no-dereference $(filter ../lib/%.so, $(TARGETS)) $(DESTDIR)$(libdir)
 #	# don't run ldconfig under fakeroot (silence dpkg-build warning)
@@ -849,10 +792,7 @@ endif
 
 	echo Installing modules
 	$(DIR) $(DESTDIR)$(EMC2_RTLIB_BASE_DIR)/modules
-	$(FILE) ../rtlib/modules/* \
-		    $(DESTDIR)$(EMC2_RTLIB_BASE_DIR)/modules
-
-endif # ! RUN_IN_PLACE
+	$(FILE) ../rtlib/modules/* $(DESTDIR)$(EMC2_RTLIB_BASE_DIR)/modules
 
 CONF=../configs
 COMMON=$(CONF)/common
@@ -909,8 +849,7 @@ $(call CONFILES,core_sim9.hal): %/core_sim9.hal: ../configs/common/core_sim9.hal
 
 #################################################################################################################
 
-EXTRA_CFLAGS = $(RTFLAGS) \
-        $(ARCH_CFLAGS) \
+EXTRA_CFLAGS = \
 	-D__MODULE__ \
 	-I$(INCLUDE_PREFIX) \
 	-I$(INCLUDE_PREFIX)/libnml/linklist \
@@ -925,190 +864,11 @@ EXTRA_CFLAGS = $(RTFLAGS) \
 	-I$(INCLUDE_PREFIX)/emc/motion \
 	-I$(INCLUDE_PREFIX)/emc/tp \
 	-DSEQUENTIAL_SUPPORT -DHAL_SUPPORT -DDYNAMIC_PLCSIZE -DRT_SUPPORT \
-	-DOLD_TIMERS_MONOS_SUPPORT -DMODBUS_IO_MASTER \
-	$(call cc-option,-mieee-fp) \
-	$(KERNEL_MATH_CFLAGS)
-
-
+	-DOLD_TIMERS_MONOS_SUPPORT -DMODBUS_IO_MASTER
 
 TOCOMPRTOBJS = $(foreach file,$($(patsubst %.o,%,$(1))-objs), $(OBJDIR)/$(file))
 
-#######################################################################################################
-
-# Module building
-EXTRA_CFLAGS += -fPIC
-
-# Non-module RT objects
-RTOBJS = $(call TORTOBJS,$(RTSRCS))
-# Module RT objects
-RTOBJS += $(foreach mod,$(obj-m),$(call TOCOMPRTOBJS,$(mod)))
-
-RTDEPS := $(patsubst $(OBJDIR)/%.o,$(OBJDIR)/%.d, $(RTOBJS))
-
-# this arcane step warrants some explanation.
-
-# this is about linking userland RT modules to be loaded by rtapi_app
-# Those modules are supposed to behave the same as kernel RT modules as far as
-# symbol visibility goes. Other than in plain C, in-kernel symbol
-# export is explicitly controlled by the EXPORT_SYMBOL(sym) macro.
-# only variables and functions tagged such will be visible to the rest of the kernel
-# and other modules.
-# See http://stackoverflow.com/questions/9836467/whats-meaning-of-export-symbol-in-linux-kernel-code
-# for an explanation and use.
-#
-# userland RT modules need to follow the same visibility rules as kernel modules
-# to prevent accidential spillover of symbols between components (which does not happen
-# in kernel space).
-#
-# The kernel behavior of EXPORT_SYMBOL is emulated as follows:
-# rtapi_export.h defines
-# #define EXPORT_SYMBOL(x) __attribute__((section(".rtapi_export"))) \
-#    char rtapi_exported_##x[] = #x;
-#
-# This means any symbol 'foo' exported as EXPORT_SYMBOL(foo) will:
-# - have a variable defined which looks like so:
-#   char rtapi_exported_foo = "foo";
-# - have put this variable put in the .rtapi_export section of the object file.
-#   (see http://wiki.osdev.org/ELF_Tutorial#The_String_Table)
-# - this string table is different from the default string table named .srtab.
-#
-# Hence, the .rtapi_export section of a RT module is a pure string table; no other
-# variables live there. The strings in this table is the set of symbols exported by
-# this module.
-#
-# Now, during linking, all symbols which are NOT in this set need to be removed.
-#
-# to do so, first the .rtapi_export section (the string table) is extracted and stored
-# in a file - one can reproduce with:
-#
-# objcopy -j .rtapi_export -O binary objects/posix/hal_lib.tmp /dev/stdout | strings
-# rtapi_info_author
-# rtapi_info_description
-# rtapi_info_license
-# rtapi_app_main
-# rtapi_app_exit
-# hal_init
-# hal_xinit
-# hal_xinitf
-# hal_ready
-# ....
-#
-# In the second objcopy step, all symbols not in this set are removed. This is done
-# by determining the list of symbols to be kept, and generating a list of lines like
-# -G <symbol>
-# which is the objcopy option for removing all other symbols not in this list:
-# -G symbolname
-# --keep-global-symbol=symbolname
-#   Keep only symbol symbolname global.  Make all other symbols local to the file, so that they are not
-#   visible externally.  This option may be given more than once.
-# This objcopy step is in-place, i.e. overwriting the .tmp file.
-#
-# The final linking step uses the -Bsymbolic flag - what this does is:
-#
-# This element's presence in a shared object library alters the dynamic linker's symbol resolution
-# algorithm for references within the library. Instead of starting a symbol search with the
-# executable file, the dynamic linker starts from the shared object itself. If the shared object
-# fails to supply the referenced symbol, the dynamic linker then searches the executable
-# file and other shared objects as usual.
-# (from https://www.technovelty.org/c/what-exactly-does-bsymblic-do.html)
-#
-# this is important for symbol resolution when the .so is loaded within rtapi_app:
-# it means that symbols referenced are resolved within the object first, instead of looking
-# at any symbols exported (maybe by accident) by rtap_app proper.
-#
-modules: $(patsubst %.o,$(RTLIBDIR)/%.so,$(obj-m))
-$(RTLIBDIR)/%.so:
-	$(ECHO) Linking realtime $(notdir $@)
-	$(LD) -d -r -o $(OBJDIR)/$*.tmp $^
-	@# use the .rtapi_export string table to generate a ld version script
-	@# explicitly defining the EXPORT_SYMBOL syms as global, and everything else as local:
-	$(OBJCOPY) -j .rtapi_export -O binary $(OBJDIR)/$*.tmp $(OBJDIR)/$*.exported
-	(echo '{ global : ';  tr -s '\0' <$(OBJDIR)/$*.exported | xargs -r0 printf '%s;\n' | grep .; echo 'local : * ; };') > $(OBJDIR)/$*.ver
-	@# link the final object using this version script:
-	$(CC) -shared -Bsymbolic $(LDFLAGS) -Wl,--version-script,$(OBJDIR)/$*.ver -o $@ $^ $(EXTRA_LDFLAGS)
-
-#$(sort $(RTDEPS)): $(OBJDIR)/%.d: %.c
-#	$(ECHO) Depending realtime $<
-#	$(call DEP,$(CC),$@ \
-#		$(patsubst objects/%.d,objects/%.o,$@),$@,$(OPT) \
-#		$(DEBUG) $(CPPFLAGS) $(EXTRA_CFLAGS) $<)
-
-# Rules to make .o (object) files
-$(sort $(RTOBJS)) : $(OBJDIR)/%.o : %.c $(OBJDIR)/%.d
-	$(CC) -c $(OPT) $(DPKG_CFLAGS) $(DEBUG) $(CPPFLAGS) \
-	    $(EXTRA_CFLAGS) $< -o $@
-
-# Rules to make .o (object) files from .cc
-$(sort $(CXXRTOBJS)) : $(OBJDIR)/%.o : %.cc $(OBJDIR)/%.d
-	$(CXX) -c $(OPT) $(DEBUG) $(RT_CXXFLAGS) $(CPPFLAGS) \
-	    $(EXTRA_CFLAGS) $< -o $@
-
 ###############################################################################################
-
-
-# Phony so that it is always rebuilt when requested, not because it
-# shouldn't exist as a file
-.PHONY: tags
-
-# dont create tags from these directories
-NOTAGSIN := \
-	objects
-
-CTAGOPTS := $(addprefix --exclude=,$(NOTAGSIN))
-ETAGOPTS := $(CTAGOPTS)
-FINDOPTS :=  -not \( $(patsubst %,-path ./% -prune -o,$(NOTAGSIN)) -type d \)
-
-tags:
-	ctags-exuberant --extra=+fq \
-		$(CTAGOPTS) \
-		'--langmap=make:+(Submakefile),make:+(Makefile.inc),c:+.comp' \
-		-I EXPORT_SYMBOL+,RTAPI_MP_INT+,RTAPI_MP_LONG+,RTAPI_MP_STRING+ \
-		-I RTAPI_MP_ARRAY_INT+,RTAPI_MP_ARRAY_LONG+,RTAPI_MP_ARRAY_STRING+ \
-		-I MODULE_AUTHOR+,MODULE_DESCRIPTION+,MODULE_LICENSE+ \
-		-R . ../tcl ../scripts ../share/axis/tcl
-	rm -f TAGS
-	find . -type f -name '*.[ch]' $(FINDOPTS) | xargs  etags -l c --append
-	find . -type f -name '*.cc'  $(FINDOPTS) | xargs  etags -l c++ --append
-	find . -type f -name '*.hh'  $(FINDOPTS) | xargs  etags -l c++ --append
-	find . -type f -name '*.proto'  $(FINDOPTS) | xargs  etags -l c++ --append
-
-# etags from exuberant-ctags package
-etags:
-	etags --extra=+fq \
-		$(ETAGOPTS) \
-		'--langmap=make:+(Submakefile),make:+(Makefile.inc),c:+.comp' \
-		-I EXPORT_SYMBOL+,RTAPI_MP_INT+,RTAPI_MP_LONG+,RTAPI_MP_STRING+ \
-		-I RTAPI_MP_ARRAY_INT+,RTAPI_MP_ARRAY_LONG+,RTAPI_MP_ARRAY_STRING+ \
-		-I MODULE_AUTHOR+,MODULE_DESCRIPTION+,MODULE_LICENSE+ \
-		-R . ../tcl ../scripts ../share/axis/tcl
-	find . -type f -name '*.[ch]' $(FINDOPTS) |xargs etags --language-force=C --append
-	find . -type f -name '*.cc'  $(FINDOPTS) |xargs etags --language-force=C++ --append
-	find . -type f -name '*.hh'  $(FINDOPTS) |xargs etags --language-force=C++ --append
-	find . -type f -name '*.proto'  $(FINDOPTS) |xargs etags --language-force=C++ --append
-
-# emacs etags; does not support tcl
-eetags:
-	@rm -f TAGS
-	@find .  $(FINDOPTS) -type f -name '*.[ch]'  |xargs etags --language=c   --append
-	@find .  $(FINDOPTS) -type f -name '*.cc'    |xargs etags --language=c++ --append
-	@find .  $(FINDOPTS) -type f -name '*.hh'    |xargs etags --language=c++ --append
-	@find .  $(FINDOPTS) -type f -name '*.proto' |xargs etags --language=c++ --append
-
-.PHONY: swish
-swish:
-	swish-e -c .swish_config -v 0 -i $(BASEPWD) \
-		$(dir $(BASEPWD))tcl \
-		$(dir $(BASEPWD))share/axis/tcl \
-		$(dir $(BASEPWD))lib/python \
-		$(dir $(BASEPWD))scripts \
-		$(dir $(BASEPWD))configs
-
-# When you depend on objects/var-ZZZ you are depending on the contents of the
-# variable ZZZ, which is assumed to depend on a Makefile, a Submakefile, or
-# Makefile.inc
-objects/var-%: Makefile $(wildcard $(SUBMAKEFILES)) Makefile.inc
-	echo $($*) > $@.tmp
-	sh move-if-change $@.tmp $@
 
 # Link shared libs
 ../lib/%.so: ../lib/%.so.0
@@ -1118,23 +878,3 @@ objects/var-%: Makefile $(wildcard $(SUBMAKEFILES)) Makefile.inc
 ALL_SHLIBS=$(filter ../%.so.0,$(TARGETS)) $(filter ../%.so,$(TARGETS))
 modules: $(ALL_SHLIBS)
 
-cscope:
-	cscope -Rb
-
-cscope/man/:
-	bash -c 'for f in `find ./ -name "cscope.*out"`;do rm $$f;done'
-
-NOSETESTS := $(wildcard ../nosetests/*.py)
-nosetest:
-	$(foreach var,$(NOSETESTS),nosetests -v $(var);)
-
-###############################################################################
-# C unit tests
-#
-# Run with `make cmocka_tests`
-
-cmocka_tests:  $(addprefix objects/, $(CMOCKA_TESTS))
-	@for test in $^; do \
-	    echo "\nRunning test $$test"; \
-	    $$test; \
-	done
