@@ -12,7 +12,7 @@ USERSRCS += $(IOSRCS) $(IOV2SRCS)
 		../../machinekit-hal/lib/libhalulapi.so.0 \
 		../../machinekit-hal/lib/libmkini.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(CXX) $(LDFLAGS) -o $@ $^ 
+	$(CXX) $(SYSROOT_FLAGS) $(LDFLAGS) -o $@ $^ 
 
 ../bin/iov2: \
 		$(call TOOBJS, $(IOV2SRCS)) \
@@ -25,7 +25,7 @@ USERSRCS += $(IOSRCS) $(IOV2SRCS)
 		../../machinekit-hal/lib/libhalulapi.so.0 \
 		../../machinekit-hal/lib/libmkini.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(CXX) $(LDFLAGS) -o $@ $^
+	$(CXX) $(SYSROOT_FLAGS) $(LDFLAGS) -o $@ $^
 
 TARGETS += ../bin/io ../bin/iov2
 

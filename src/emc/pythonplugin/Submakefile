@@ -25,7 +25,7 @@ TARGETS += ../lib/libpyplugin.so.0
 ../lib/libpyplugin.so.0: $(patsubst %.cc,objects/%.o,$(LIBPPSRCS)) ../../machinekit-hal/lib/libmkini.so
 	$(ECHO) Linking $(notdir $@)
 	rm -f $@
-	$(CXX) -g $(LDFLAGS) -Wl,-soname,$(notdir $@) -shared -o $@ $^ \
+	$(CXX) $(SYSROOT_FLAGS) $(DEBUG) $(LDFLAGS) -Wl,-soname,$(notdir $@) -shared -o $@ $^ \
 	    -lstdc++ -l$(BOOST_PYTHON_LIB) $(PYTHON_LIBS)
 
 

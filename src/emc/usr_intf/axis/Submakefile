@@ -18,16 +18,16 @@ $(EMCMODULE): $(call TOOBJS, $(EMCMODULESRCS)) \
 	../../machinekit-hal/lib/libmkini.so \
 	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking python module $(notdir $@)
-	$(CXX) $(LDFLAGS) -shared -o $@ $^ -L/usr/X11R6/lib -lGL
+	$(CXX) $(SYSROOT_FLAGS) $(LDFLAGS) -shared -o $@ $^ -L/usr/X11R6/lib -lGL
 
 
 $(MINIGLMODULE): $(call TOOBJS, $(MINIGLMODULESRCS))
 	$(ECHO) Linking python module $(notdir $@)
-	$(CC) $(LDFLAGS) -shared -o $@ $^ -L/usr/X11R6/lib -lGLU -lGL
+	$(CC) $(SYSROOT_FLAGS) $(LDFLAGS) -shared -o $@ $^ -L/usr/X11R6/lib -lGLU -lGL
 
 $(TOGLMODULE): $(call TOOBJS, $(TOGLMODULESRCS))
 	$(ECHO) Linking python module $(notdir $@)
-	$(CC) $(LDFLAGS) -shared -o $@ $^ -L/usr/X11R6/lib \
+	$(CC) $(SYSROOT_FLAGS) $(LDFLAGS) -shared -o $@ $^ -L/usr/X11R6/lib \
 		-lX11 -lGL -lGLU -lXmu $(TCL_LIBS)
 
 PYTARGETS += $(EMCMODULE) $(MINIGLMODULE) $(TOGLMODULE)

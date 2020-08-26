@@ -9,7 +9,7 @@ USERSRCS += $(EMCSVRSRCS)
 	../../machinekit-hal/lib/libmkini.so.0 \
 	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(CXX) $(LDFLAGS) -o $@ $^ 
+	$(CXX) $(SYSROOT_FLAGS) $(LDFLAGS) -o $@ $^ 
 TARGETS += ../bin/machinekitsvr
 
 # disabled:	emc/task/iotaskintf.cc
@@ -42,5 +42,5 @@ USERSRCS += $(MILLTASKSRCS)
 	../lib/libposemath.so.0 \
 	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(CXX) -o $@ $^ $(LDFLAGS) -l$(BOOST_PYTHON_LIB) $(PYTHON_LIBS)
+	$(CXX) $(SYSROOT_FLAGS) -o $@ $^ $(LDFLAGS) -l$(BOOST_PYTHON_LIB) $(PYTHON_LIBS)
 TARGETS += ../bin/milltask

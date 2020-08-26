@@ -1,4 +1,4 @@
-EMCSHSRCS := emc/usr_intf/emcsh.cc
+emc`EMCSHSRCS := emc/usr_intf/emcsh.cc
 
 EMCRSHSRCS := emc/usr_intf/emcrsh.cc \
 	      emc/usr_intf/shcom.cc
@@ -48,7 +48,7 @@ $(call TOOBJSDEPS, $(EMCWEBSRCS)) : EXTRA_CFLAGS = -D__DIR__=\"$(EMC2_HOME)\"  -
 	../../machinekit-hal/lib/libmkini.so.0 \
 	../lib/libnml.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(CXX) -shared $(LDFLAGS) -o $@ $(TCL_CFLAGS) $^ $(TCL_LIBS) -lXinerama
+	$(CXX) $(SYSROOT_FLAGS) -shared $(LDFLAGS) -o $@ $(TCL_CFLAGS) $^ $(TCL_LIBS) -lXinerama
 TARGETS += ../tcl/machinekit.so
 
 ../bin/machinekitrsh: $(call TOOBJS, $(EMCRSHSRCS)) $(OBJDIR)/emc/rs274ngc/modal_state.o \
@@ -57,7 +57,7 @@ TARGETS += ../tcl/machinekit.so
 	../../machinekit-hal/lib/libmkini.so.0 \
 	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(CXX) $(LDFLAGS) -o $@ $^ -lpthread
+	$(CXX) $(SYSROOT_FLAGS) $(LDFLAGS) -o $@ $^ -lpthread
 TARGETS += ../bin/machinekitrsh
 
 ../bin/schedrmt: $(call TOOBJS, $(EMCSCHEDSRCS)) $(OBJDIR)/emc/usr_intf/shcom.o $(OBJDIR)/emc/rs274ngc/modal_state.o \
@@ -66,7 +66,7 @@ TARGETS += ../bin/machinekitrsh
 	../../machinekit-hal/lib/libmkini.so.0 \
 	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(CXX) $(LDFLAGS) -o $@ $^ -lpthread
+	$(CXX) $(SYSROOT_FLAGS) $(LDFLAGS) -o $@ $^ -lpthread
 TARGETS += ../bin/schedrmt
 
 ../bin/machinekitlcd: $(call TOOBJS, $(EMCLCDSRCS)) $(OBJDIR)/emc/usr_intf/shcom.o $(OBJDIR)/emc/rs274ngc/modal_state.o \
@@ -75,7 +75,7 @@ TARGETS += ../bin/schedrmt
 	../../machinekit-hal/lib/libmkini.so.0 \
 	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(CXX) $(LDFLAGS) -o $@ $^
+	$(CXX) $(SYSROOT_FLAGS) $(LDFLAGS) -o $@ $^
 TARGETS += ../bin/machinekitlcd
 
 ../bin/halui: $(call TOOBJS, $(HALUISRCS)) $(OBJDIR)/emc/rs274ngc/modal_state.o \
@@ -86,7 +86,7 @@ TARGETS += ../bin/machinekitlcd
 	../../machinekit-hal/lib/libhalulapi.so.0 \
 	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(CXX) $(LDFLAGS) -o $@ $^ 
+	$(CXX) $(SYSROOT_FLAGS) $(LDFLAGS) -o $@ $^ 
 TARGETS += ../bin/halui
 
 ifeq "$(HAVE_NCURSES)" "yes"
@@ -96,7 +96,7 @@ ifeq "$(HAVE_NCURSES)" "yes"
 	../../machinekit-hal/lib/libmkini.so.0 \
 	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(CXX) $(LDFLAGS) -o $@ $^ $(KEYSTICKLIBS)
+	$(CXX) $(SYSROOT_FLAGS) $(LDFLAGS) -o $@ $^ $(KEYSTICKLIBS)
 TARGETS += ../bin/keystick
 endif
 
@@ -108,7 +108,7 @@ $(call TOOBJSDEPS,$(XEMCSRCS)): EXTRAFLAGS = $(CFLAGS_X)
 	../../machinekit-hal/lib/libmkini.so.0 \
 	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(CXX) $(LDFLAGS) -o $@ $^ $(XLIBS)
+	$(CXX) $(SYSROOT_FLAGS) $(LDFLAGS) -o $@ $^ $(XLIBS)
 TARGETS += ../bin/xmachinekit
 endif
 
@@ -119,7 +119,7 @@ ifeq "$(BUILD_EMCWEB)" "yes"
 	../../machinekit-hal/lib/libmkini.so.0 \
 	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(CXX) $(LDFLAGS) $(BOOST_LDFLAGS) -o $@ $(ULFLAGS) $^ \
+	$(CXX) $(SYSROOT_FLAGS) $(LDFLAGS) $(BOOST_LDFLAGS) -o $@ $(ULFLAGS) $^ \
 	    $(BOOST_THREAD_LIB) $(BOOST_SYSTEM_LIB) \
 	    -lpthread -ldl	
 TARGETS += ../bin/emcweb

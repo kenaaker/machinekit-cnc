@@ -6,8 +6,16 @@ ifeq ("$(origin VV)", "command line")
     SHELL = $(warning Building $@$(if $<, (from $<))$(if $?, ($? newer)))$(OLD_SHELL)
 endif
 
-#CROSS_COMPILE=arm-linux-gnueabihf-
-#CROSS_COMPILE_FLAGS=--sysroot=/home/kdaaker/nfs_mounts/beaglebone-cnc
+CROSS_COMPILE?=arm-linux-gnueabihf-
+SYSTEM_BUILD_ROOT?=/home/kdaaker/nfs_mounts/beaglebone-cnc/
+
+export CROSS_COMPILE
+export SYSTEM_BUILD_ROOT
+
+SYSROOT_FLAGS:=--sysroot=$(SYSTEM_BUILD_ROOT)
+export SYSROOT_FLAGS
+
+TOP_DIR?=$(shell pwd)
 
 # Delete the default suffix rules
 .SUFFIXES:
@@ -71,8 +79,6 @@ BOOST_PYTHON_LIB=boost_python
 SITEPY=/usr/lib/python2.7/dist-packages
 CYTHON=/usr/bin/cython
 
-
-
 # Install related stuff.
 DESTDIR := /usr
 localedir := cnc_msgs
@@ -94,11 +100,11 @@ all: configs userspace modules
 OBJDIR := objects
 RTLIBDIR := ../rtlib
 
-DEP = $(1) $(CPPFLAGS) -MM -MG -MT "$(2)" $(4) -o $(3).tmp && \
+DEP = $(1) $(CPPFLAGS) $(SYSROOT_FLAGS) -MM -MG -MT "$(2)" $(4) -o $(3).tmp && \
 	mv -f "$(3)".tmp "$(3)"
 
 cc-option = $(shell \
-    if $(CC) $(CPPFLAGS) $(CFLAGS) $(1) -S -o /dev/null -xc /dev/null \
+    if $(CC) $(CPPFLAGS) $(SYSROOT_FLAGS) $(CFLAGS) $(1) -S -o /dev/null -xc /dev/null \
 	    > /dev/null 2>&1; then \
 	echo "$(1)"; \
     else \
@@ -125,8 +131,8 @@ SUBDIRS := \
 	libnml \
 	libnml/linklist \
 	libnml/cms \
-	libnml/rcs \
 	libnml/os_intf \
+	libnml/rcs \
 	libnml/nml \
 	libnml/buffer \
 	libnml/posemath \
@@ -169,12 +175,12 @@ objects/libnml/linklist: | objects/libnml
 objects/libnml/cms: | objects/libnml
 	mkdir $@
 
-objects/libnml/rcs: | objects/libnml
-	mkdir $@
-
 objects/libnml/os_intf: | objects/libnml
 	mkdir $@
 
+objects/libnml/rcs: | objects/libnml
+	mkdir $@
+	
 objects/libnml/nml: | objects/libnml
 	mkdir $@
 
@@ -275,6 +281,9 @@ objects/po: | objects
 INCLUDES := .
 INCLUDES += ../include
 INCLUDES += ../../machinekit-hal/include
+INCLUDES += ../../machinekit-hal/src/rtapi
+INCLUDES += ../../machinekit-hal/src/inifile
+INCLUDES += ../../machinekit-hal/src/hal/lib
 
 USERSRCS :=
 PROGRAMS :=
@@ -394,14 +403,14 @@ LDFLAGS += -Wl,--no-as-needed
 
 # Rules to make .o (object) files
 $(CUSEROBJS) : objects/%.o: %.c | $(OBJ_DIRS)
-	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(EXTRA_CFLAGS) -MMD -MF "${@:.o=.d}" -MT "$@" $< -o $@
+	$(CC) -c $(CPPFLAGS) $(SYSROOT_FLAGS) $(CFLAGS) $(EXTRA_CFLAGS) -MMD -MF "${@:.o=.d}" -MT "$@" $< -o $@
 
 # Rules to make .o (object) files, build arch
 $(CUSEROBJS_BUILD) : objects/%_build.o: %.c | $(OBJ_DIRS)
 	$(CC_FOR_BUILD) -c $(CFLAGS) $(EXTRA_CFLAGS) -MMD -MF "${@:.o=.d}" -MT "$@" $< -o $@
 
 $(CXXUSEROBJS) : objects/%.o: %.cc | $(OBJ_DIRS)
-	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $(EXTRA_CFLAGS) -MMD -MF "${@:.o=.d}" -MT "$@" $< -o $@
+	$(CXX) -c $(CPPFLAGS) $(SYSROOT_FLAGS) $(CXXFLAGS) $(EXTRA_CFLAGS) -MMD -MF "${@:.o=.d}" -MT "$@" $< -o $@
 
 all:
 
@@ -489,10 +498,6 @@ HEADERS := \
     libnml/os_intf/shm.hh \
     libnml/os_intf/_timer.h \
     libnml/os_intf/timer.hh \
-    libnml/rcs/rcs.hh \
-    libnml/rcs/rcs_exit.hh \
-    libnml/rcs/rcsversion.h \
-    libnml/rcs/rcs_print.hh
 
 ## the "headers" target installs all the header files in ../include
 .PHONY: headers
@@ -702,7 +707,7 @@ install-kernel-indep: install-dirs
 	$(EXE) ../scripts/linuxcnc $(DESTDIR)$(bindir)
 	$(EXE) ../scripts/machinekit $(DESTDIR)$(bindir)
 	$(EXE) ../scripts/linuxcnc_info $(DESTDIR)$(bindir)
-	$(EXE) ../scripts/linuxcncmkdesktop $(DESTDIR)$(bindir)
+# 	$(EXE) ../scripts/linuxcncmkdesktop $(DESTDIR)$(bindir)
 	$(EXE) ../scripts/latency-test $(DESTDIR)$(bindir)
 	$(FILE) $(filter ../lib/%.a ../lib/%.so.0,$(TARGETS)) $(DESTDIR)$(libdir)
 	cp --no-dereference $(filter ../lib/%.so, $(TARGETS)) $(DESTDIR)$(libdir)
@@ -826,13 +831,13 @@ COPY_CONFIGS += $(patsubst %,../configs/%/axis_manualtoolchange.hal, \
                 by_interface/parport/plasma-thc-sim)
 
 show_configs_copy_stuff:
-	@echo CONFILES=$(CONFILES)
-	@echo CALL:$(call CONFILES,axis_manualtoolchange.hal)
-	@echo CALL:$(call CONFILES,core_stepper.hal)
-	@echo CALL:$(call CONFILES,core_servo.hal)
-	@echo CALL:$(call CONFILES,core_sim.hal)
-	@echo CALL:$(call CONFILES,core_sim9.hal)
-	@echo COPY_CONFIGS=$(COPY_CONFIGS)
+	echo CONFILES=$(CONFILES)
+	echo CALL:$(call CONFILES,axis_manualtoolchange.hal)
+	echo CALL:$(call CONFILES,core_stepper.hal)
+	echo CALL:$(call CONFILES,core_servo.hal)
+	echo CALL:$(call CONFILES,core_sim.hal)
+	echo CALL:$(call CONFILES,core_sim9.hal)
+	echo COPY_CONFIGS=$(COPY_CONFIGS)
 
 configs: $(COPY_CONFIGS)
 
@@ -854,8 +859,8 @@ EXTRA_CFLAGS = \
 	-I$(INCLUDE_PREFIX) \
 	-I$(INCLUDE_PREFIX)/libnml/linklist \
 	-I$(INCLUDE_PREFIX)/libnml/cms \
-	-I$(INCLUDE_PREFIX)/libnml/rcs \
 	-I$(INCLUDE_PREFIX)/libnml/os_intf \
+	-I$(INCLUDE_PREFIX)/libnml/rcs \
 	-I$(INCLUDE_PREFIX)/libnml/nml \
 	-I$(INCLUDE_PREFIX)/libnml/buffer \
 	-I$(INCLUDE_PREFIX)/libnml/posemath \

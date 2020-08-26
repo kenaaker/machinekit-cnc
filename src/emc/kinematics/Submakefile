@@ -18,7 +18,7 @@ $(call TOOBJS, $(DELTAMODULESRCS)): CFLAGS += -x c++ -Wno-declaration-after-stat
 DELTAMODULE := ../lib/python/lineardeltakins.so
 $(DELTAMODULE): $(call TOOBJS, $(DELTAMODULESRCS))
 	$(ECHO) Linking python module $(notdir $@)
-	$(CXX) $(LDFLAGS) -shared -o $@ $^ -l$(BOOST_PYTHON_LIB)
+	$(CXX) $(SYSROOT_FLAGS) $(LDFLAGS) -shared -o $@ $^ -l$(BOOST_PYTHON_LIB)
 PYTARGETS += $(DELTAMODULE)
 
 ../bin/genserkins: $(call TOOBJS, $(GENSERKINSSRCS)) \
@@ -27,7 +27,7 @@ PYTARGETS += $(DELTAMODULE)
 	../lib/libposemath.so \
 	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(CC) $(LDFLAGS) -o $@ $^
+	$(CC) $(SYSROOT_FLAGS) $(LDFLAGS) -o $@ $^
 TARGETS += ../bin/genserkins
 
 ../bin/drawbotkins: $(call TOOBJS, $(GENSERKINSSRCS)) \
@@ -36,7 +36,7 @@ TARGETS += ../bin/genserkins
 	../lib/libposemath.so \
 	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
-	$(CC) $(LDFLAGS) -o $@ $^
+	$(CC) $(SYSROOT_FLAGS) $(LDFLAGS) -o $@ $^
 TARGETS += ../bin/drawbotkins
 
 
