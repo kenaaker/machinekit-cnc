@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # this line restarts using wish \
 exec wish "$0" "$@"
 
@@ -85,7 +85,7 @@ set ::always_update_nc_files 1
 
 ################### PROCEDURE DEFINITIONS #####################
 
-set desktopdir [exec bash -c {test -f ${XDG_CONFIG_HOME:-~/.config}/user-dirs.dirs && . ${XDG_CONFIG_HOME:-~/.config}/user-dirs.dirs; echo ${XDG_DESKTOP_DIR:-$HOME/Desktop}}]
+set desktopdir [exec /bin/bash -c {test -f ${XDG_CONFIG_HOME:-~/.config}/user-dirs.dirs && . ${XDG_CONFIG_HOME:-~/.config}/user-dirs.dirs; echo ${XDG_DESKTOP_DIR:-$HOME/Desktop}}]
 
 # use initialize_config for bwidget and .machinekitrc
 proc initialize_config {} {
@@ -328,8 +328,8 @@ set top [frame .main -borderwidth 0 -relief flat ]
 pack $logo -side left -anchor nw
 pack $top -side left -expand yes -fill both
 
-wm geo . 780x480
-wm minsize . 780 480
+wm geo . 1440x960
+wm minsize . 1440 960
 
 proc SW { args } {
     set res [eval ScrolledWindow $args]
@@ -353,7 +353,8 @@ set s1 [ SW $f2.f3 -auto both]
 $s1 configure -relief sunken -borderwidth 2
 # the tree
 set ::tree [Tree $s1.tree -highlightthickness 0 \
-                          -width 25 -relief flat -padx 4 \
+                          -width 75 -relief flat -padx 4 \
+                          -deltay 30 \
                           ]
 $s1 setwidget $::tree
 pack $s1 -fill y -expand n -side left
@@ -812,6 +813,8 @@ while {1} {
     focus $::tree
     vwait ::choice
 
+    exec /bin/bash -c { echo ${LD_LIBRARY_PATH=$LD_LIBRARY_PATH}}
+    
     if { $::choice == "OK" } {
         if [ok_to_copy_config $::inifile] {
             set copied_inifile [prompt_copy $::inifile]
