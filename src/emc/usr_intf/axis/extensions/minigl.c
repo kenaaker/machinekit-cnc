@@ -178,7 +178,7 @@ static PyObject *pyglBitmap(PyObject *s, PyObject *o) {
     int width, height, nbitmap;
     float xorg, yorg, xmove, ymove;
     char *bitmap;
-    if(!PyArg_ParseTuple(o, "iiffffs#:glBitmap", &width, &height,
+    if(!PyArg_ParseTuple(o, "iiffffz#:glBitmap", &width, &height,
                 &xorg, &yorg, &xmove, &ymove, &bitmap, &nbitmap)) {
         return NULL;
     }
@@ -191,7 +191,7 @@ static PyObject *pyglBitmap(PyObject *s, PyObject *o) {
 static PyObject *pyglDrawPixels(PyObject *s, PyObject *o) {
     int width, height, format, type, nbitmap;
     char *bitmap;
-    if(!PyArg_ParseTuple(o, "iiiis#:glBitmap", &width, &height,
+    if(!PyArg_ParseTuple(o, "iiiiz#:glBitmap", &width, &height,
                 &format, &type, &bitmap, &nbitmap)) {
         return NULL;
     }
@@ -350,7 +350,7 @@ static PyObject *pyglMultMatrixd(PyObject *s, PyObject *o) {
 static PyObject *pyglPolygonStipple(PyObject *s, PyObject *o) {
     char *buf;
     int sz;
-    if(!PyArg_ParseTuple(o, "s#:glPolygonStipple", &buf, &sz)) return NULL;
+    if(!PyArg_ParseTuple(o, "z#:glPolygonStipple", &buf, &sz)) return NULL;
     if(sz != 128) {
         PyErr_SetString(PyExc_ValueError, "Buffer must be 128 bytes long");
         return NULL;
