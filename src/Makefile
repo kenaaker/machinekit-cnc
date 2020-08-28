@@ -1,3 +1,11 @@
+
+CROSS_COMPILE ?= arm-linux-gnueabihf-
+export CROSS_COMPILE
+SYSTEM_BUILD_ROOT ?= /home/kdaaker/nfsmounts/beaglebone-ai
+SYSROOT_FLAGS ?= --sysroot=$(SYSTEM_BUILD_ROOT)
+export SYSTEM_BUILD_ROOT
+export SYSROOT_FLAGS
+
 # see http://www.cmcrossroads.com/ask-mr-make/6535-tracing-rule-execution-in-gnu-make
 # to trace make execution of make in more detail:
 #     make VV=1
@@ -5,15 +13,6 @@ ifeq ("$(origin VV)", "command line")
     OLD_SHELL := $(SHELL)
     SHELL = $(warning Building $@$(if $<, (from $<))$(if $?, ($? newer)))$(OLD_SHELL)
 endif
-
-CROSS_COMPILE?=arm-linux-gnueabihf-
-SYSTEM_BUILD_ROOT?=/home/kdaaker/nfs_mounts/beaglebone-cnc/
-
-export CROSS_COMPILE
-export SYSTEM_BUILD_ROOT
-
-SYSROOT_FLAGS:=--sysroot=$(SYSTEM_BUILD_ROOT)
-export SYSROOT_FLAGS
 
 TOP_DIR?=$(shell pwd)
 
@@ -148,6 +147,8 @@ SUBDIRS := \
 	emc/task \
 	emc/iotask \
 	emc/kinematics \
+	emc/motion \
+	emc/tp \
 	emc/canterp \
 	emc/ini \
 	emc/rs274ngc \
@@ -229,6 +230,9 @@ objects/emc/iotask: | objects/emc
 objects/emc/kinematics: | objects/emc
 	mkdir $@
 
+objects/emc/tp: | objects/emc
+	mkdir $@
+	
 objects/emc/canterp: | objects/emc
 	mkdir $@\
 
@@ -586,15 +590,17 @@ docclean:
 
 clean: depclean modclean docclean
 	find . -name '*.o' |xargs rm -f
-	-rm -rf objects
-	-rm -f $(TARGETS)
-	-rm -rf ../rtlib ../libexec
+	rm -rf objects
+	rm -f $(TARGETS)
+	rm -rf ../rtlib ../libexec
 	rm -f ../etc/linuxcnc/rtapi.ini
-	-rm -f $(COPY_CONFIGS)
-	-rm -f $(RTLIBDIR)/*.so
+	rm -f $(COPY_CONFIGS)
+	rm -f $(RTLIBDIR)/*.so
 	rm -rf ../share/linuxcnc/stepconf
-	-rm -rf ../libexec
-
+	rm -rf ../libexec
+	rm -rf ../include/*
+	rm -rf ../lib/*
+	
 # So that nothing is built as root, this rule does not depend on the touched
 # files 
 #fix_perms = test -f $(1) && chown root $(1) && chmod 4750 $(1) || true

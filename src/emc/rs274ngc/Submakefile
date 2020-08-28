@@ -45,7 +45,7 @@ TARGETS += ../lib/librs274.so ../lib/librs274.so.0
 	../../machinekit-hal/lib/librtapi_math.so.0
 	$(ECHO) Linking $(notdir $@)
 	rm -f $@
-	$(CXX) -g $(LDFLAGS) -Wl,-soname,$(notdir $@) -shared -o $@ $^ \
+	$(CXX) $(SYSROOT_FLAGS) -g $(LDFLAGS) -Wl,-soname,$(notdir $@) -shared -o $@ $^ \
 	    -lstdc++ -l$(BOOST_PYTHON_LIB) $(PYTHON_LIBS) -ldl
 
 ../include/%.h: ./emc/rs274ngc/%.h
@@ -61,7 +61,7 @@ PYSRCS += $(GCODEMODULESRCS)
 GCODEMODULE := ../lib/python/gcode.so
 $(GCODEMODULE): $(call TOOBJS, $(GCODEMODULESRCS)) ../lib/librs274.so.0
 	$(ECHO) Linking python module $(notdir $@)
-	$(CXX) $(LDFLAGS) -shared -o $@ $^ -lstdc++
+	$(CXX) $(SYSROOT_FLAGS) $(LDFLAGS) -shared -o $@ $^ -lstdc++
 
 
 PYTARGETS += $(GCODEMODULE)
@@ -78,7 +78,7 @@ $(PREVIEWMODULE): $(call TOOBJS, $(PREVIEWMODULESRCS)) \
 	../lib/librs274.so.0 \
 	../../machinekit-hal/lib/libmachinetalk-pb2++.so.0
 	$(ECHO) Linking python module $(notdir $@)
-	$(CXX) $(LDFLAGS) -shared -o $@ $^ -lstdc++  $(CZMQ_LIBS) \
+	$(CXX) $(SYSROOT_FLAGS) $(LDFLAGS) -shared -o $@ $^ $(CZMQ_LIBS) \
 	    $(PROTOBUF_LIBS)
 
 
